@@ -51,7 +51,10 @@ export function FlightCard({ flight, passengers = 1 }: { flight: Flight; passeng
         <span className="text-xs text-orange-500 font-medium">
           {flight.seatsLeft <= 5 ? `仅剩 ${flight.seatsLeft} 席` : '余票充足'}
         </span>
-        <button className="px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
+        <button
+          onClick={() => flight.bookingUrl && window.open(flight.bookingUrl, '_blank')}
+          className="px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
+        >
           选择
         </button>
       </div>

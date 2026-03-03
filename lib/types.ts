@@ -27,6 +27,7 @@ export interface Flight {
   currency: string
   seatsLeft: number
   cabinClass: string
+  bookingUrl?: string
 }
 
 export interface Hotel {
@@ -42,6 +43,7 @@ export interface Hotel {
   amenities: string[]
   imageUrl: string
   distanceToCenter: string
+  bookingUrl?: string
 }
 
 export interface SearchResults {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { searchFlights, searchReturnFlights, searchHotels } from '@/lib/amadeus'
+import { searchFlights, searchReturnFlights, searchHotels } from '@/lib/serpapi'
 import { TravelIntent } from '@/lib/types'
 
 export async function POST(req: NextRequest) {

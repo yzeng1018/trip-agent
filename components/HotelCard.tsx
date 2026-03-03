@@ -45,7 +45,10 @@ export function HotelCard({ hotel, nights = 1 }: { hotel: Hotel; nights?: number
             <p className="text-lg font-bold text-blue-600">¥{hotel.pricePerNight.toLocaleString()}</p>
             <p className="text-xs text-gray-400">/晚 · 共 ¥{total.toLocaleString()}</p>
           </div>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
+          <button
+            onClick={() => hotel.bookingUrl && window.open(hotel.bookingUrl, '_blank')}
+            className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
+          >
             预订
           </button>
         </div>
