@@ -18,10 +18,12 @@ JSON 结构如下：
   "currency": "CNY",
   "hotelStars": null 或 数字（最低星级）,
   "hotelLocation": null 或 "描述（如市中心）",
-  "tripType": "roundtrip 或 oneway"
+  "tripType": "roundtrip 或 oneway",
+  "needsHotel": true 或 false（用户是否明确提到需要酒店/住宿；只查机票时为 false）
 }
 
 如果某项信息用户没有提及，用 null 填充（passengers 默认为 1）。
+needsHotel：用户只提机票/航班时为 false，提到酒店/住宿/行程时为 true。
 日期如果用户只说了月日，默认年份为 2026。`
 
 export async function parseIntent(userMessage: string): Promise<TravelIntent> {

@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     const [flights, returnFlights, hotels] = await Promise.all([
       searchFlights(intent),
       intent.tripType === 'roundtrip' ? searchReturnFlights(intent) : Promise.resolve([]),
-      searchHotels(intent),
+      intent.needsHotel ? searchHotels(intent) : Promise.resolve([]),
     ])
 
     return NextResponse.json({ intent, flights, returnFlights, hotels })

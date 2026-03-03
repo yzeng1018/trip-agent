@@ -55,7 +55,7 @@ function Results() {
           {flights.length === 0 ? (
             <p className="text-gray-400 text-sm">暂无符合条件的机票</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-4">
               {flights.map(f => (
                 <FlightCard key={f.id} flight={f} passengers={intent.passengers} />
               ))}
@@ -70,7 +70,7 @@ function Results() {
               回程机票
               <span className="ml-2 text-sm font-normal text-gray-400">{returnFlights.length} 个结果</span>
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-4">
               {returnFlights.map(f => (
                 <FlightCard key={f.id + '-r'} flight={f} passengers={intent.passengers} />
               ))}
@@ -79,23 +79,25 @@ function Results() {
         )}
 
         {/* Hotels */}
-        <section>
-          <h2 className="text-lg font-bold text-gray-900 mb-4">
-            推荐酒店
-            <span className="ml-2 text-sm font-normal text-gray-400">
-              {hotels.length} 个结果 · {nights} 晚
-            </span>
-          </h2>
-          {hotels.length === 0 ? (
-            <p className="text-gray-400 text-sm">暂无符合条件的酒店</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {hotels.map(h => (
-                <HotelCard key={h.id} hotel={h} nights={nights} />
-              ))}
-            </div>
-          )}
-        </section>
+        {intent.needsHotel && (
+          <section>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">
+              推荐酒店
+              <span className="ml-2 text-sm font-normal text-gray-400">
+                {hotels.length} 个结果 · {nights} 晚
+              </span>
+            </h2>
+            {hotels.length === 0 ? (
+              <p className="text-gray-400 text-sm">暂无符合条件的酒店</p>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {hotels.map(h => (
+                  <HotelCard key={h.id} hotel={h} nights={nights} />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
       </div>
     </main>
   )

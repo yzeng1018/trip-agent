@@ -10,6 +10,7 @@ export interface TravelIntent {
   hotelStars?: number
   hotelLocation?: string
   tripType: 'roundtrip' | 'oneway'
+  needsHotel: boolean
 }
 
 export interface Flight {
