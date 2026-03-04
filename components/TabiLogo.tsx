@@ -11,21 +11,24 @@ export function TabiLogo({ size = 'md', theme = 'dark' }: TabiLogoProps) {
 
   return (
     <div className="flex items-center gap-2 select-none">
-      {/* Symbol mark */}
+      {/* Rabbit mascot */}
       <svg width={d} height={d} viewBox="0 0 40 40" fill="none">
-        {/* Subtle globe ring */}
-        <circle cx="20" cy="20" r="15.5" stroke="#C7D2FE" strokeWidth="1.2" />
-        {/* Flight arc */}
-        <path
-          d="M 9 30 C 11 17 25 11 32 18"
-          stroke="#4338CA"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        {/* Origin dot */}
-        <circle cx="9" cy="30" r="2" fill="#818CF8" />
-        {/* Destination dot — warm accent */}
-        <circle cx="32" cy="18" r="4.5" fill="#F97316" />
+        {/* Left ear */}
+        <ellipse cx="13" cy="11" rx="4" ry="9" fill="#818CF8" />
+        <ellipse cx="13" cy="11" rx="2.3" ry="6.5" fill="#C7D2FE" />
+        {/* Right ear */}
+        <ellipse cx="27" cy="11" rx="4" ry="9" fill="#818CF8" />
+        <ellipse cx="27" cy="11" rx="2.3" ry="6.5" fill="#C7D2FE" />
+        {/* Head */}
+        <circle cx="20" cy="27" r="11" fill="#818CF8" />
+        {/* Left eye */}
+        <circle cx="16" cy="26" r="2" fill="white" />
+        <circle cx="16.5" cy="26" r="1.1" fill="#1e1b4b" />
+        {/* Right eye */}
+        <circle cx="24" cy="26" r="2" fill="white" />
+        <circle cx="24.5" cy="26" r="1.1" fill="#1e1b4b" />
+        {/* Nose */}
+        <ellipse cx="20" cy="30.5" rx="2" ry="1.4" fill="#F97316" />
       </svg>
 
       {/* Wordmark */}

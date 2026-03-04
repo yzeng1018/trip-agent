@@ -4,8 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 
 interface Slide {
   url: string
-  kb: number   // 0-3, which Ken Burns variant
-  key: number  // forces animation restart via React key
+  kb: number
+  key: number
 }
 
 interface Props {
@@ -25,43 +25,45 @@ function preload(url: string) {
 }
 
 export function BackgroundSlideshow({ photos, intervalMs = 14000 }: Props) {
-  const [current, setCurrent] = useState<Slide>({
-    url: photos[0],
-    kb: 0,
-    key: 0,
-  })
-
-  // opacity of current slide: 1 = fully visible, 0 = fading out
-  const [opacity, setOpacity] = useState(1)
-  const nextSlide = useRef<Slide>({ url: photos[1] ?? photos[0], kb: 0, key: 1 })
+  // bottom layer: incoming slide (always fully visible underneath)
+  const [bottom, setBottom] = useState<Slide>({ url: photos[0], kb: 0, key: 0 })
+  // top layer: current slide, fades out to reveal bottom
+  const [top, setTop] = useState<Slide>({ url: photos[0], kb: 0, key: 1 })
+  const [topOpacity, setTopOpacity] = useState(1)
+  const nextSlide = useRef<Slide>({ url: photos[1] ?? photos[0], kb: 0, key: 2 })
 
   useEffect(() => {
-    // Randomize on client after hydration
-    const initialSlide = {
+    const initialSlide: Slide = {
       url: photos[Math.floor(Math.random() * photos.length)],
       kb: Math.floor(Math.random() * 4),
       key: 0,
     }
-    setCurrent(initialSlide)
+    setBottom(initialSlide)
+    setTop(initialSlide)
+    setTopOpacity(1)
     nextSlide.current = pickNext(photos, initialSlide.url)
     preload(nextSlide.current.url)
 
     const timer = setInterval(() => {
       const incoming = nextSlide.current
 
-      // 1. fade out current (2s)
-      setOpacity(0)
+      // 1. place incoming on bottom layer (invisible behind top)
+      setBottom(incoming)
+
+      // 2. fade out top layer to reveal incoming underneath
+      setTopOpacity(0)
 
       setTimeout(() => {
-        // 2. swap to next, fade in (2s)
-        setCurrent(incoming)
-        setOpacity(1)
+        // 3. snap top layer to incoming (now invisible, no flicker)
+        //    then restore opacity so it's ready for next transition
+        setTop(incoming)
+        setTopOpacity(1)
 
-        // 3. prepare the one after
+        // 4. prepare next
         const upcoming = pickNext(photos, incoming.url)
         nextSlide.current = upcoming
         preload(upcoming.url)
-      }, 2000)
+      }, 2200)
     }, intervalMs)
 
     return () => clearInterval(timer)
@@ -70,13 +72,23 @@ export function BackgroundSlideshow({ photos, intervalMs = 14000 }: Props) {
 
   return (
     <div className="absolute inset-0 overflow-hidden bg-black">
+      {/* Bottom layer: next slide, always fully visible */}
       <div
-        key={current.key}
-        className={`absolute inset-0 bg-cover bg-center kb-${current.kb}`}
+        key={`b-${bottom.key}`}
+        className={`absolute inset-0 bg-cover bg-center kb-${bottom.kb}`}
         style={{
-          backgroundImage: `url(${current.url})`,
-          opacity,
-          transition: 'opacity 2s ease-in-out',
+          backgroundImage: `url(${bottom.url})`,
+          '--kb-duration': `${intervalMs}ms`,
+        } as React.CSSProperties}
+      />
+      {/* Top layer: current slide, fades out during transition */}
+      <div
+        key={`t-${top.key}`}
+        className={`absolute inset-0 bg-cover bg-center kb-${top.kb}`}
+        style={{
+          backgroundImage: `url(${top.url})`,
+          opacity: topOpacity,
+          transition: topOpacity === 0 ? 'opacity 2s ease-in-out' : 'none',
           '--kb-duration': `${intervalMs}ms`,
         } as React.CSSProperties}
       />

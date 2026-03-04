@@ -53,12 +53,6 @@ export default function Home() {
       {/* Nav */}
       <nav className="relative z-[2] px-6 pt-5 flex items-center justify-between">
         <TabiLogo size="md" theme="light" />
-        <div className="flex items-center gap-3">
-          <button className="text-white/70 hover:text-white text-sm transition-colors">登录</button>
-          <button className="px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white text-sm rounded-full hover:bg-white/30 transition-all">
-            注册
-          </button>
-        </div>
       </nav>
 
       {/* Hero */}
@@ -134,15 +128,6 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Scroll hint */}
-        <div className="mt-12 flex justify-center">
-          <button className="flex items-center gap-1.5 text-white/50 text-sm hover:text-white/70 transition-colors">
-            了解更多功能
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-        </div>
       </div>
     </main>
   )
