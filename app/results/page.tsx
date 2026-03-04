@@ -14,7 +14,7 @@ const LOADING_STEPS = [
   '即将完成，稍等片刻...',
 ]
 
-function LoadingScreen({ message }: { message: string }) {
+function LoadingScreen({ message, charsReceived }: { message: string; charsReceived: number }) {
   const [stepIndex, setStepIndex] = useState(0)
   const [dots, setDots] = useState('')
 
@@ -51,6 +51,22 @@ function LoadingScreen({ message }: { message: string }) {
         <div className="max-w-sm w-full bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4 mb-6 text-sm text-gray-600 leading-relaxed">
           {message}
         </div>
+
+        {/* Streaming progress bar */}
+        {charsReceived > 0 && (
+          <div className="max-w-sm w-full mb-4">
+            <div className="flex justify-between text-xs text-gray-400 mb-1">
+              <span>正在输出行程内容</span>
+              <span>{charsReceived} 字</span>
+            </div>
+            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-indigo-400 rounded-full transition-all duration-300"
+                style={{ width: `${Math.min((charsReceived / 3000) * 100, 95)}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Status steps */}
         <div className="max-w-sm w-full space-y-2">
@@ -89,6 +105,7 @@ function Results() {
   const router = useRouter()
   const [plan, setPlan] = useState<TripPlan | null>(null)
   const [error, setError] = useState('')
+  const [charsReceived, setCharsReceived] = useState(0)
 
   const message = params.get('message')
   const rawPlan = params.get('plan')
@@ -110,22 +127,33 @@ function Results() {
       return
     }
 
-    fetch('/api/plan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: decodeURIComponent(message) }),
-    })
-      .then(async res => {
-        const text = await res.text()
-        try {
-          const data = JSON.parse(text)
-          if (data.error) throw new Error(data.error)
-          setPlan(data.plan)
-        } catch {
-          throw new Error('生成失败，请重试')
+    ;(async () => {
+      try {
+        const res = await fetch('/api/plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: decodeURIComponent(message) }),
+        })
+        if (!res.body) throw new Error('生成失败，请重试')
+
+        const reader = res.body.getReader()
+        const decoder = new TextDecoder()
+        let fullText = ''
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          fullText += decoder.decode(value, { stream: true })
+          setCharsReceived(fullText.length)
         }
-      })
-      .catch(err => setError(err.message || '生成失败，请重试'))
+
+        const data = JSON.parse(fullText)
+        if (data.error) throw new Error(data.error)
+        setPlan(data.plan)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '生成失败，请重试')
+      }
+    })()
   }, [message, rawPlan])
 
   if (error) {
@@ -143,7 +171,7 @@ function Results() {
   }
 
   if (!plan) {
-    return <LoadingScreen message={message ? decodeURIComponent(message) : '正在生成行程...'} />
+    return <LoadingScreen message={message ? decodeURIComponent(message) : '正在生成行程...'} charsReceived={charsReceived} />
   }
 
   return (

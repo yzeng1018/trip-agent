@@ -175,7 +175,7 @@ async function callAI(systemPrompt: string, userMessage: string): Promise<string
       baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     })
     const res = await qwen.chat.completions.create({
-      model: 'qwen-plus',
+      model: 'qwen-turbo',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userMessage },
@@ -202,4 +202,75 @@ export async function generateItinerary(userMessage: string): Promise<TripPlan> 
   } catch {
     throw new Error('行程生成失败，请重新描述你的出行需求')
   }
+}
+
+export function generateItineraryStream(userMessage: string): ReadableStream {
+  const provider = process.env.AI_PROVIDER || 'claude'
+  const encoder = new TextEncoder()
+
+  return new ReadableStream({
+    async start(controller) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let stream: AsyncIterable<any>
+
+        if (provider === 'qwen') {
+          const qwen = new OpenAI({
+            apiKey: process.env.DASHSCOPE_API_KEY,
+            baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+          })
+          stream = await qwen.chat.completions.create({
+            model: 'qwen-turbo',
+            messages: [
+              { role: 'system', content: ITINERARY_SYSTEM_PROMPT },
+              { role: 'user', content: userMessage },
+            ],
+            temperature: 0.7,
+            stream: true,
+          })
+        } else if (provider === 'openai') {
+          const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+          stream = await openai.chat.completions.create({
+            model: 'gpt-4o',
+            messages: [
+              { role: 'system', content: ITINERARY_SYSTEM_PROMPT },
+              { role: 'user', content: userMessage },
+            ],
+            temperature: 0.7,
+            stream: true,
+          })
+        } else if (provider === 'deepseek') {
+          const deepseek = new OpenAI({
+            apiKey: process.env.DEEPSEEK_API_KEY,
+            baseURL: 'https://api.deepseek.com',
+          })
+          stream = await deepseek.chat.completions.create({
+            model: 'deepseek-chat',
+            messages: [
+              { role: 'system', content: ITINERARY_SYSTEM_PROMPT },
+              { role: 'user', content: userMessage },
+            ],
+            temperature: 0.7,
+            stream: true,
+          })
+        } else {
+          // Fallback: non-streaming
+          const content = await callAI(ITINERARY_SYSTEM_PROMPT, userMessage)
+          controller.enqueue(encoder.encode(content))
+          controller.close()
+          return
+        }
+
+        for await (const chunk of stream) {
+          const text = chunk.choices[0]?.delta?.content || ''
+          if (text) controller.enqueue(encoder.encode(text))
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : '生成失败'
+        controller.enqueue(encoder.encode(JSON.stringify({ error: msg })))
+      } finally {
+        controller.close()
+      }
+    },
+  })
 }
