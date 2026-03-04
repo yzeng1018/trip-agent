@@ -2,49 +2,39 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ParsedIntent } from '@/components/ParsedIntent'
-import { TravelIntent } from '@/lib/types'
+import { TabiLogo } from '@/components/TabiLogo'
+import { BackgroundSlideshow } from '@/components/BackgroundSlideshow'
+import { TRAVEL_PHOTOS } from '@/lib/photos'
 
-const EXAMPLES = [
-  '我想从上海飞巴黎，4月10号出发，4月20号回来，两个人，预算8000一个人，最好是国航或法航，4星以上酒店市中心',
-  '北京到东京，5月1日单程，一个人，越便宜越好',
-  '广州飞纽约 6月15号出发 6月30回 商务舱',
+const QUICK_ACTIONS = [
+  { label: '✨ 创建新行程', prompt: '帮我规划一次旅行' },
+  { label: '🌍 给我旅行灵感', prompt: '给我推荐一个适合现在去的目的地' },
+  { label: '🚗 规划公路旅行', prompt: '帮我规划一次公路旅行' },
+  { label: '⚡ 随时出发', prompt: '我想马上出发，帮我找一个近期可以去的地方' },
 ]
 
 export default function Home() {
   const router = useRouter()
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [preview, setPreview] = useState<TravelIntent | null>(null)
   const [error, setError] = useState('')
 
   async function handleSearch() {
     if (!input.trim()) return
     setLoading(true)
     setError('')
-    setPreview(null)
 
     try {
-      const parseRes = await fetch('/api/parse', {
+      const res = await fetch('/api/plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input }),
       })
-      const parseData = await parseRes.json()
-      if (!parseRes.ok) throw new Error(parseData.error)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
 
-      setPreview(parseData.intent)
-
-      const searchRes = await fetch('/api/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ intent: parseData.intent }),
-      })
-      const searchData = await searchRes.json()
-      if (!searchRes.ok) throw new Error(searchData.error)
-
-      const encoded = encodeURIComponent(JSON.stringify(searchData))
-      router.push(`/results?data=${encoded}`)
+      const encoded = encodeURIComponent(JSON.stringify(data.plan))
+      router.push(`/results?plan=${encoded}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : '出错了，请重试')
     } finally {
@@ -53,62 +43,105 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <div className="max-w-3xl mx-auto px-4 pt-24 pb-16">
-        <div className="text-center mb-12">
-          <div className="text-5xl mb-4">✈️</div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">Trip Agent</h1>
-          <p className="text-lg text-gray-500">
-            用自然语言描述你的出行需求，AI 帮你找到最合适的机票和酒店
-          </p>
-        </div>
+    <main className="min-h-screen relative flex flex-col">
+      {/* Dynamic background slideshow */}
+      <BackgroundSlideshow photos={TRAVEL_PHOTOS} intervalMs={7000} fadeDurationMs={1500} />
 
-        <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6">
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/25 z-[1]" />
+
+      {/* Nav */}
+      <nav className="relative z-[2] px-6 pt-5 flex items-center justify-between">
+        <TabiLogo size="md" theme="light" />
+        <div className="flex items-center gap-3">
+          <button className="text-white/70 hover:text-white text-sm transition-colors">登录</button>
+          <button className="px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white text-sm rounded-full hover:bg-white/30 transition-all">
+            注册
+          </button>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <div className="relative z-[2] flex-1 flex flex-col justify-center max-w-2xl mx-auto w-full px-6 pb-24">
+        <h1 className="text-5xl font-bold text-white mb-3 leading-tight tracking-tight">
+          你想去哪里？
+        </h1>
+        <p className="text-lg text-white/75 mb-8 leading-relaxed">
+          告诉我你的出行风格和预算，我来帮你规划旅程。
+        </p>
+
+        {/* Input card */}
+        <div className="bg-white rounded-3xl shadow-2xl p-5">
           <textarea
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => {
               if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleSearch()
             }}
-            placeholder="例如：我想从上海飞巴黎，4月10号出发，两个人，预算8000一个人..."
-            className="w-full resize-none text-gray-800 text-base leading-relaxed placeholder-gray-300 outline-none min-h-[100px]"
+            placeholder="设计一次难忘的樱花季日本之旅，4月中旬，两个人..."
+            className="w-full resize-none text-gray-800 text-base leading-relaxed placeholder-gray-300 outline-none min-h-[80px]"
             rows={3}
           />
 
-          {preview && (
-            <div className="mt-2 pt-3 border-t border-gray-50">
-              <p className="text-xs text-gray-400 mb-1">AI 理解</p>
-              <ParsedIntent intent={preview} />
-            </div>
-          )}
-
-          {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+          {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
 
           <div className="flex items-center justify-between mt-4">
-            <p className="text-xs text-gray-400">⌘ + Enter 搜索</p>
-            <button
-              onClick={handleSearch}
-              disabled={loading || !input.trim()}
-              className="px-8 py-3 bg-blue-600 text-white rounded-2xl font-semibold text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
-            >
-              {loading ? <><span className="animate-spin inline-block">⟳</span> AI 解析中...</> : '搜索'}
+            <button className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-gray-200 text-sm text-gray-500 hover:border-gray-300 transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              </svg>
+              附件
             </button>
+            <div className="flex items-center gap-3">
+              <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+              </button>
+              <button
+                onClick={handleSearch}
+                disabled={loading || !input.trim()}
+                className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-full text-sm font-medium hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                {loading ? (
+                  <>
+                    <span className="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    规划中...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    规划行程
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="mt-8">
-          <p className="text-xs text-gray-400 mb-3 text-center">试试这些例子</p>
-          <div className="flex flex-col gap-2">
-            {EXAMPLES.map((ex, i) => (
-              <button
-                key={i}
-                onClick={() => setInput(ex)}
-                className="text-left px-4 py-3 bg-white/60 hover:bg-white rounded-2xl text-sm text-gray-600 hover:text-gray-900 border border-gray-100 hover:border-gray-200 transition-all"
-              >
-                {ex}
-              </button>
-            ))}
-          </div>
+        {/* Quick actions */}
+        <div className="flex flex-wrap gap-2 mt-5">
+          {QUICK_ACTIONS.map((action, i) => (
+            <button
+              key={i}
+              onClick={() => setInput(action.prompt)}
+              className="px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white text-sm rounded-full hover:bg-white/30 transition-all"
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Scroll hint */}
+        <div className="mt-12 flex justify-center">
+          <button className="flex items-center gap-1.5 text-white/50 text-sm hover:text-white/70 transition-colors">
+            了解更多功能
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
         </div>
       </div>
     </main>

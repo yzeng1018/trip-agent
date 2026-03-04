@@ -124,3 +124,26 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Ken Burns — 4 个方向随机使用 */
+@keyframes kb-zoom-in {
+  from { transform: scale(1)    translate(0, 0); }
+  to   { transform: scale(1.08) translate(-1%, -1%); }
+}
+@keyframes kb-zoom-in-right {
+  from { transform: scale(1)    translate(0, 0); }
+  to   { transform: scale(1.08) translate(1%, -1%); }
+}
+@keyframes kb-pan-left {
+  from { transform: scale(1.06) translate(2%, 0); }
+  to   { transform: scale(1.06) translate(-2%, 0); }
+}
+@keyframes kb-pan-right {
+  from { transform: scale(1.06) translate(-2%, 0); }
+  to   { transform: scale(1.06) translate(2%, 0); }
+}
+
+.kb-0 { animation: kb-zoom-in       var(--kb-duration) ease-in-out forwards; }
+.kb-1 { animation: kb-zoom-in-right var(--kb-duration) ease-in-out forwards; }
+.kb-2 { animation: kb-pan-left      var(--kb-duration) ease-in-out forwards; }
+.kb-3 { animation: kb-pan-right     var(--kb-duration) ease-in-out forwards; }

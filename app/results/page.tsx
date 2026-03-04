@@ -2,110 +2,112 @@
 
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Suspense } from 'react'
-import { FlightCard } from '@/components/FlightCard'
-import { HotelCard } from '@/components/HotelCard'
-import { ParsedIntent } from '@/components/ParsedIntent'
-import { SearchResults } from '@/lib/types'
+import { TabiLogo } from '@/components/TabiLogo'
+import { ItineraryDay } from '@/components/ItineraryDay'
+import { TripPlan } from '@/lib/types'
 
 function Results() {
   const params = useSearchParams()
   const router = useRouter()
 
-  let data: SearchResults | null = null
+  let plan: TripPlan | null = null
   try {
-    const raw = params.get('data')
-    if (raw) data = JSON.parse(decodeURIComponent(raw))
+    const raw = params.get('plan')
+    if (raw) plan = JSON.parse(decodeURIComponent(raw))
   } catch {
     return <p className="text-center text-red-500 mt-20">数据解析失败</p>
   }
 
-  if (!data) return <p className="text-center text-gray-400 mt-20">暂无数据</p>
-
-  const { intent, flights, returnFlights, hotels } = data
-  const nights = intent.returnDate
-    ? Math.max(1, Math.round((new Date(intent.returnDate).getTime() - new Date(intent.departDate).getTime()) / 86400000))
-    : 7
+  if (!plan) return <p className="text-center text-gray-400 mt-20">暂无数据</p>
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-4">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Top nav */}
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
+        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+          <button onClick={() => router.push('/')}>
+            <TabiLogo size="sm" />
+          </button>
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <span>{plan.destination}</span>
+            <span>·</span>
+            <span>{plan.duration} 天</span>
+            {plan.request.travelers > 1 && (
+              <>
+                <span>·</span>
+                <span>{plan.request.travelers} 人</span>
+              </>
+            )}
+          </div>
           <button
             onClick={() => router.push('/')}
-            className="text-gray-400 hover:text-gray-600 text-sm flex items-center gap-1"
+            className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1 transition-colors"
           >
-            ← 重新搜索
+            重新规划
           </button>
-          <div className="flex-1">
-            <ParsedIntent intent={intent} />
+        </div>
+      </header>
+
+      <main className="max-w-3xl mx-auto w-full px-4 py-8 flex-1">
+        {/* Trip header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{plan.title}</h1>
+          <p className="text-gray-500 leading-relaxed">{plan.summary}</p>
+
+          {/* Meta tags */}
+          <div className="flex flex-wrap gap-2 mt-4">
+            {plan.request.style && (
+              <span className="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs rounded-full font-medium">
+                {plan.request.style}
+              </span>
+            )}
+            {plan.request.interests?.map((tag, i) => (
+              <span key={i} className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                {tag}
+              </span>
+            ))}
+            {plan.estimatedBudget && (
+              <span className="px-3 py-1 bg-green-50 text-green-700 text-xs rounded-full font-medium">
+                💰 {plan.estimatedBudget}
+              </span>
+            )}
           </div>
         </div>
-      </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-8 space-y-10">
-        {/* Outbound Flights */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">
-              去程机票
-              <span className="ml-2 text-sm font-normal text-gray-400">{flights.length} 个结果</span>
-            </h2>
+        {/* Day by day */}
+        {plan.days.map(day => (
+          <ItineraryDay key={day.day} day={day} />
+        ))}
+
+        {/* Practical tips */}
+        {plan.practicalTips?.length > 0 && (
+          <div className="mt-4 bg-amber-50 border border-amber-100 rounded-2xl p-5">
+            <h3 className="text-sm font-semibold text-amber-900 mb-3">出行贴士</h3>
+            <ul className="space-y-2">
+              {plan.practicalTips.map((tip, i) => (
+                <li key={i} className="text-sm text-amber-800 flex items-start gap-2">
+                  <span className="text-amber-400 mt-0.5">•</span>
+                  {tip}
+                </li>
+              ))}
+            </ul>
           </div>
-          {flights.length === 0 ? (
-            <p className="text-gray-400 text-sm">暂无符合条件的机票</p>
-          ) : (
-            <div className="flex flex-col gap-4">
-              {flights.map(f => (
-                <FlightCard key={f.id} flight={f} passengers={intent.passengers} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Return Flights */}
-        {returnFlights && returnFlights.length > 0 && (
-          <section>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">
-              回程机票
-              <span className="ml-2 text-sm font-normal text-gray-400">{returnFlights.length} 个结果</span>
-            </h2>
-            <div className="flex flex-col gap-4">
-              {returnFlights.map(f => (
-                <FlightCard key={f.id + '-r'} flight={f} passengers={intent.passengers} />
-              ))}
-            </div>
-          </section>
         )}
-
-        {/* Hotels */}
-        {intent.needsHotel && (
-          <section>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">
-              推荐酒店
-              <span className="ml-2 text-sm font-normal text-gray-400">
-                {hotels.length} 个结果 · {nights} 晚
-              </span>
-            </h2>
-            {hotels.length === 0 ? (
-              <p className="text-gray-400 text-sm">暂无符合条件的酒店</p>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {hotels.map(h => (
-                  <HotelCard key={h.id} hotel={h} nights={nights} />
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-      </div>
-    </main>
+      </main>
+    </div>
   )
 }
 
 export default function ResultsPage() {
   return (
-    <Suspense fallback={<div className="text-center mt-20 text-gray-400">加载中...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-gray-400">正在生成行程...</p>
+        </div>
+      </div>
+    }>
       <Results />
     </Suspense>
   )
