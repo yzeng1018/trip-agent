@@ -1,24 +1,145 @@
 'use client'
 
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Suspense } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { TabiLogo } from '@/components/TabiLogo'
 import { ItineraryDay } from '@/components/ItineraryDay'
 import { TripPlan } from '@/lib/types'
 
+const LOADING_STEPS = [
+  '正在理解你的旅行需求...',
+  '规划最佳路线和景点...',
+  '安排每天的详细行程...',
+  '添加实用贴士和预算建议...',
+  '即将完成，稍等片刻...',
+]
+
+function LoadingScreen({ message }: { message: string }) {
+  const [stepIndex, setStepIndex] = useState(0)
+  const [dots, setDots] = useState('')
+
+  useEffect(() => {
+    const dotTimer = setInterval(() => {
+      setDots(d => d.length >= 3 ? '' : d + '.')
+    }, 500)
+    return () => clearInterval(dotTimer)
+  }, [])
+
+  useEffect(() => {
+    const stepTimer = setInterval(() => {
+      setStepIndex(i => Math.min(i + 1, LOADING_STEPS.length - 1))
+    }, 5000)
+    return () => clearInterval(stepTimer)
+  }, [])
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <header className="bg-white border-b border-gray-100">
+        <div className="max-w-3xl mx-auto px-4 py-3">
+          <TabiLogo size="sm" />
+        </div>
+      </header>
+
+      <div className="flex-1 flex flex-col items-center justify-center px-6">
+        {/* Spinner */}
+        <div className="relative mb-8">
+          <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-500 rounded-full animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center text-2xl">✈️</div>
+        </div>
+
+        {/* User message */}
+        <div className="max-w-sm w-full bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4 mb-6 text-sm text-gray-600 leading-relaxed">
+          {message}
+        </div>
+
+        {/* Status steps */}
+        <div className="max-w-sm w-full space-y-2">
+          {LOADING_STEPS.map((step, i) => (
+            <div
+              key={i}
+              className={`flex items-center gap-3 text-sm transition-all duration-500 ${
+                i < stepIndex ? 'text-indigo-500' :
+                i === stepIndex ? 'text-gray-800 font-medium' :
+                'text-gray-300'
+              }`}
+            >
+              <span className="w-4 h-4 flex-shrink-0">
+                {i < stepIndex ? (
+                  <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4">
+                    <circle cx="8" cy="8" r="7" fill="#EEF2FF" />
+                    <path d="M5 8l2 2 4-4" stroke="#6366F1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ) : i === stepIndex ? (
+                  <span className="inline-block w-2 h-2 bg-indigo-500 rounded-full mt-1 animate-pulse" />
+                ) : (
+                  <span className="inline-block w-2 h-2 bg-gray-200 rounded-full mt-1" />
+                )}
+              </span>
+              <span>{i === stepIndex ? `${step.replace('...', '')}${dots}` : step}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function Results() {
   const params = useSearchParams()
   const router = useRouter()
+  const [plan, setPlan] = useState<TripPlan | null>(null)
+  const [error, setError] = useState('')
 
-  let plan: TripPlan | null = null
-  try {
-    const raw = params.get('plan')
-    if (raw) plan = JSON.parse(decodeURIComponent(raw))
-  } catch {
-    return <p className="text-center text-red-500 mt-20">数据解析失败</p>
+  const message = params.get('message')
+  const rawPlan = params.get('plan')
+
+  useEffect(() => {
+    // Legacy: plan already in URL
+    if (rawPlan) {
+      try {
+        setPlan(JSON.parse(decodeURIComponent(rawPlan)))
+      } catch {
+        setError('数据解析失败')
+      }
+      return
+    }
+
+    // New flow: fetch from API
+    if (!message) {
+      setError('暂无数据')
+      return
+    }
+
+    fetch('/api/plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: decodeURIComponent(message) }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error)
+        setPlan(data.plan)
+      })
+      .catch(err => setError(err.message || '生成失败，请重试'))
+  }, [message, rawPlan])
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <p className="text-red-500">{error}</p>
+        <button
+          onClick={() => router.push('/')}
+          className="px-4 py-2 bg-gray-900 text-white rounded-full text-sm"
+        >
+          重新规划
+        </button>
+      </div>
+    )
   }
 
-  if (!plan) return <p className="text-center text-gray-400 mt-20">暂无数据</p>
+  if (!plan) {
+    return <LoadingScreen message={message ? decodeURIComponent(message) : '正在生成行程...'} />
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -102,10 +223,7 @@ export default function ResultsPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm text-gray-400">正在生成行程...</p>
-        </div>
+        <div className="w-8 h-8 border-2 border-gray-200 border-t-indigo-500 rounded-full animate-spin" />
       </div>
     }>
       <Results />
