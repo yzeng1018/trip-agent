@@ -43,19 +43,23 @@ export interface TripPlan {
 // ── Legacy flight/hotel types (kept for future use) ───────────
 
 export interface Hotel {
+  id?: string
   name: string
   stars: number
   location: string
+  city?: string
   distanceToCenter: string
   rating: number
   reviewCount: number
   pricePerNight: number
+  currency?: string
   amenities: string[]
   imageUrl: string
   bookingUrl?: string
 }
 
 export interface Flight {
+  id?: string
   airline: string
   airlineCode: string
   flightNumber: string
@@ -67,6 +71,7 @@ export interface Flight {
   duration: string
   stops: number
   price: number
+  currency?: string
   seatsLeft: number
   bookingUrl?: string
 }

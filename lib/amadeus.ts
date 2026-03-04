@@ -16,7 +16,7 @@ const CITY_TO_IATA: Record<string, string> = {
   '洛杉矶': 'LAX', '旧金山': 'SFO', '悉尼': 'SYD', '墨尔本': 'MEL',
   '香港': 'HKG', '台北': 'TPE', '澳门': 'MFM', '大阪': 'OSA',
   '罗马': 'ROM', '巴塞罗那': 'BCN', '阿姆斯特丹': 'AMS', '法兰克福': 'FRA',
-  '迪拜': 'DXB', '多哈': 'DOH', '曼谷': 'BKK', '吉隆坡': 'KUL',
+  '多哈': 'DOH', '吉隆坡': 'KUL',
 }
 
 function getIATA(city: string): string {

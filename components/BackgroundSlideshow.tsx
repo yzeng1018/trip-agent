@@ -25,17 +25,25 @@ function preload(url: string) {
 }
 
 export function BackgroundSlideshow({ photos, intervalMs = 14000 }: Props) {
-  const [current, setCurrent] = useState<Slide>(() => ({
-    url: photos[Math.floor(Math.random() * photos.length)],
-    kb: Math.floor(Math.random() * 4),
+  const [current, setCurrent] = useState<Slide>({
+    url: photos[0],
+    kb: 0,
     key: 0,
-  }))
+  })
 
   // opacity of current slide: 1 = fully visible, 0 = fading out
   const [opacity, setOpacity] = useState(1)
-  const nextSlide = useRef<Slide>(pickNext(photos, current.url))
+  const nextSlide = useRef<Slide>({ url: photos[1] ?? photos[0], kb: 0, key: 1 })
 
   useEffect(() => {
+    // Randomize on client after hydration
+    const initialSlide = {
+      url: photos[Math.floor(Math.random() * photos.length)],
+      kb: Math.floor(Math.random() * 4),
+      key: 0,
+    }
+    setCurrent(initialSlide)
+    nextSlide.current = pickNext(photos, initialSlide.url)
     preload(nextSlide.current.url)
 
     const timer = setInterval(() => {
