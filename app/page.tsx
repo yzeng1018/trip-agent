@@ -45,7 +45,7 @@ export default function Home() {
   return (
     <main className="min-h-screen relative flex flex-col">
       {/* Dynamic background slideshow */}
-      <BackgroundSlideshow photos={TRAVEL_PHOTOS} intervalMs={7000} fadeDurationMs={1500} />
+      <BackgroundSlideshow photos={TRAVEL_PHOTOS} intervalMs={7000} />
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/25 z-[1]" />
