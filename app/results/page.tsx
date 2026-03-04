@@ -115,10 +115,15 @@ function Results() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: decodeURIComponent(message) }),
     })
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) throw new Error(data.error)
-        setPlan(data.plan)
+      .then(async res => {
+        const text = await res.text()
+        try {
+          const data = JSON.parse(text)
+          if (data.error) throw new Error(data.error)
+          setPlan(data.plan)
+        } catch {
+          throw new Error('生成失败，请重试')
+        }
       })
       .catch(err => setError(err.message || '生成失败，请重试'))
   }, [message, rawPlan])
