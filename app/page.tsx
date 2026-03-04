@@ -7,7 +7,6 @@ import { BackgroundSlideshow } from '@/components/BackgroundSlideshow'
 import { TRAVEL_PHOTOS } from '@/lib/photos'
 
 const QUICK_ACTIONS = [
-  { label: '✨ 创建新行程', prompt: '帮我规划一次旅行' },
   { label: '🌍 给我旅行灵感', prompt: '给我推荐一个适合现在去的目的地' },
   { label: '🚗 规划公路旅行', prompt: '帮我规划一次公路旅行' },
   { label: '⚡ 随时出发', prompt: '我想马上出发，帮我找一个近期可以去的地方' },
