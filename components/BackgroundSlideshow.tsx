@@ -80,7 +80,7 @@ export function BackgroundSlideshow({ photos, intervalMs = 14000 }: Props) {
 
   return (
     <div
-      className="absolute inset-0 overflow-hidden bg-black"
+      className="absolute inset-0 overflow-hidden"
       style={{ opacity: ready ? 1 : 0, transition: 'opacity 1.5s ease-in-out' }}
     >
       {([0, 1] as const).map(slot => (

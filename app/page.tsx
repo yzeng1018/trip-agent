@@ -22,7 +22,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen relative flex flex-col">
+    <main className="min-h-screen relative flex flex-col" style={{ backgroundColor: '#1a1035' }}>
       {/* Dynamic background slideshow */}
       <BackgroundSlideshow photos={TRAVEL_PHOTOS} intervalMs={7000} />
 
@@ -35,11 +35,11 @@ export default function Home() {
       </nav>
 
       {/* Hero */}
-      <div className="relative z-[2] flex-1 flex flex-col justify-center max-w-2xl mx-auto w-full px-6 pb-24">
-        <h1 className="text-5xl font-bold text-white mb-3 leading-tight tracking-tight">
+      <div className="relative z-[2] flex-1 flex flex-col justify-center max-w-2xl mx-auto w-full px-4 sm:px-6 pb-6 sm:pb-24">
+        <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 sm:mb-3 leading-tight tracking-tight">
           你想去哪里？
         </h1>
-        <p className="text-lg text-white/75 mb-8 leading-relaxed">
+        <p className="text-base sm:text-lg text-white/75 mb-4 sm:mb-8 leading-relaxed">
           告诉我你的出行风格和预算，我来帮你规划旅程。
         </p>
 
@@ -52,11 +52,11 @@ export default function Home() {
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSearch() }
             }}
             placeholder="设计一次难忘的樱花季日本之旅，4月中旬，两个人..."
-            className="w-full resize-none text-gray-800 text-base leading-relaxed placeholder-gray-300 outline-none min-h-[80px]"
-            rows={3}
+            className="w-full resize-none text-gray-800 text-base leading-relaxed placeholder-gray-300 outline-none min-h-[60px] sm:min-h-[80px]"
+            rows={2}
           />
 
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center justify-between mt-3 gap-2">
             <button className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-gray-200 text-sm text-gray-500 hover:border-gray-300 transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
