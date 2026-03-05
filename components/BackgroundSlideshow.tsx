@@ -1,77 +1,68 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-interface Slide { url: string; kb: number }
 interface Props { photos: string[]; intervalMs?: number }
 
-function pick(photos: string[], exclude: string): Slide {
-  const pool = photos.filter(p => p !== exclude)
-  const url = pool[Math.floor(Math.random() * pool.length)]
-  return { url, kb: Math.floor(Math.random() * 4) }
-}
+// Keep image refs alive so browser doesn't evict them from memory cache
+const imageCache: Record<string, HTMLImageElement> = {}
 
 function preload(url: string): Promise<void> {
+  if (imageCache[url]?.complete) return Promise.resolve()
   return new Promise(resolve => {
-    const img = new Image()
+    const img = imageCache[url] ?? new Image()
+    imageCache[url] = img
+    if (img.complete) { resolve(); return }
     img.onload = () => resolve()
     img.onerror = () => resolve()
     img.src = url
   })
 }
 
-export function BackgroundSlideshow({ photos, intervalMs = 14000 }: Props) {
-  // Two fixed slots that alternate — slot A and slot B
-  const [slides, setSlides] = useState<[Slide, Slide]>([
-    { url: photos[0], kb: 0 },
-    { url: photos[0], kb: 0 },
-  ])
-  const [active, setActive] = useState<0 | 1>(0)
-  const [ready, setReady] = useState(false)
-  const activeRef = useRef<0 | 1>(0)
-  const nextRef = useRef<Slide>({ url: photos[0], kb: 0 })
+function pick(photos: string[], exclude?: string) {
+  const pool = exclude ? photos.filter(p => p !== exclude) : photos
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
+export function BackgroundSlideshow({ photos, intervalMs = 7000 }: Props) {
+  // bottom: always opacity-1, never fades out → no black gap ever
+  const [bottom, setBottom] = useState(photos[0])
+  // top: fades in on top of bottom, then becomes the new bottom
+  const [top, setTop] = useState<string | null>(null)
+  const [topVisible, setTopVisible] = useState(false)
+
+  const bottomRef = useRef(photos[0])
 
   useEffect(() => {
-    const first: Slide = {
-      url: photos[Math.floor(Math.random() * photos.length)],
-      kb: Math.floor(Math.random() * 4),
-    }
-
-    // Wait for first image before showing anything — eliminates initial black screen
-    preload(first.url).then(() => {
-      const second = pick(photos, first.url)
-      // slot 0 = first (active), slot 1 = second (ready underneath at opacity 0)
-      setSlides([first, second])
-      setActive(0)
-      activeRef.current = 0
-      setReady(true)
-
-      nextRef.current = pick(photos, second.url)
-      preload(second.url)
-      preload(nextRef.current.url)
+    // Kick off with a random first image
+    const first = pick(photos)
+    preload(first).then(() => {
+      setBottom(first)
+      bottomRef.current = first
+      preload(pick(photos, first)) // warm up next
     })
 
-    const timer = setInterval(() => {
-      const incoming = nextRef.current
-      const nextActive = (activeRef.current === 0 ? 1 : 0) as 0 | 1
+    const timer = setInterval(async () => {
+      const next = pick(photos, bottomRef.current)
+      await preload(next)
 
-      // Step 1: load incoming URL into the inactive slot (still opacity 0, invisible)
-      setSlides(prev => {
-        const next = [...prev] as [Slide, Slide]
-        next[nextActive] = incoming
-        return next
-      })
+      // Place new image on top at opacity 0
+      setTop(next)
+      setTopVisible(false)
 
-      // Step 2: one frame later, flip active — browser transitions opacity 0→1
-      requestAnimationFrame(() => {
-        setActive(nextActive)
-        activeRef.current = nextActive
-      })
+      // Two rAF ticks to ensure the element is painted before transition starts
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => setTopVisible(true))
+      )
 
-      // Prepare next
-      const upcoming = pick(photos, incoming.url)
-      nextRef.current = upcoming
-      preload(upcoming.url)
+      // After fade-in completes: promote top → bottom, hide top layer
+      setTimeout(() => {
+        setBottom(next)
+        bottomRef.current = next
+        setTop(null)
+        setTopVisible(false)
+        preload(pick(photos, next)) // warm up next-next
+      }, 2600) // slightly longer than the 2.5s CSS transition
     }, intervalMs)
 
     return () => clearInterval(timer)
@@ -79,22 +70,23 @@ export function BackgroundSlideshow({ photos, intervalMs = 14000 }: Props) {
   }, [])
 
   return (
-    <div
-      className="absolute inset-0 overflow-hidden"
-      style={{ opacity: ready ? 1 : 0, transition: 'opacity 1.5s ease-in-out' }}
-    >
-      {([0, 1] as const).map(slot => (
+    <div className="absolute inset-0 overflow-hidden">
+      {/* Bottom layer — always fully visible, never fades */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(${bottom})` }}
+      />
+      {/* Top layer — fades in over the bottom */}
+      {top && (
         <div
-          key={slot}
-          className={`absolute inset-0 bg-cover bg-center kb-${slides[slot].kb}`}
+          className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: `url(${slides[slot].url})`,
-            opacity: active === slot ? 1 : 0,
-            transition: 'opacity 2s ease-in-out',
-            '--kb-duration': `${intervalMs}ms`,
-          } as React.CSSProperties}
+            backgroundImage: `url(${top})`,
+            opacity: topVisible ? 1 : 0,
+            transition: 'opacity 2.5s ease-in-out',
+          }}
         />
-      ))}
+      )}
     </div>
   )
 }
