@@ -146,7 +146,12 @@ export function BookingView({ plan }: { plan: BookingPlan }) {
   }
 
   if (availableSections.length === 0) {
-    return <p className="text-white/50 text-sm text-center py-12">暂无推荐方案</p>
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
+        <p className="text-white/70 text-base">告诉我你想去哪里，或者出发地和目的地</p>
+        <p className="text-white/40 text-sm">例如：帮我订北京到东京的机票和酒店</p>
+      </div>
+    )
   }
 
   if (!currentItem) return null
