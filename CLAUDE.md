@@ -85,6 +85,23 @@ return () => { active = false; abortController.abort() }
 
 ---
 
+## Subagents
+
+三个 subagent 在 `.claude/agents/` 目录下，用法：直接告诉 Claude "用 subagent 做XX"。
+
+| Subagent | 用途 | 示例指令 |
+|----------|------|----------|
+| `code-reviewer` | 实现完成后审查代码，查 bug 和一致性 | "用 subagent 审查一下这次改动" |
+| `deploy` | commit → push → vercel 一键发布 | "用 subagent 部署" |
+| `explorer` | 在独立 context 里探索代码库，不污染主对话 | "用 subagent 找一下 XX 是怎么实现的" |
+
+**什么时候用 subagent：**
+- 探索代码库（会读很多文件，容易撑爆主 context）
+- 实现完一个功能后做代码审查
+- 准备发布时一键 deploy
+
+---
+
 ## What NOT to Do
 - Don't use `echo` to set Vercel env vars (use `printf`)
 - Don't use client-side canvas for cross-origin image analysis (use server-side sharp)
