@@ -46,5 +46,7 @@ export async function GET(_req: NextRequest) {
   })
 
   cachedGood = good.length >= 5 ? good : TRAVEL_PHOTOS
-  return Response.json({ photos: cachedGood })
+  return Response.json({ photos: cachedGood }, {
+    headers: { 'Cache-Control': 'public, max-age=86400, stale-while-revalidate=3600' },
+  })
 }
