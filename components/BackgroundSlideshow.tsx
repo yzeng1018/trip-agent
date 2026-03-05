@@ -1,23 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface Props { photos: string[]; intervalMs?: number }
-
-// Keep image refs alive so browser doesn't evict them from memory cache
-const imageCache: Record<string, HTMLImageElement> = {}
-
-function preload(url: string): Promise<void> {
-  if (imageCache[url]?.complete) return Promise.resolve()
-  return new Promise(resolve => {
-    const img = imageCache[url] ?? new Image()
-    imageCache[url] = img
-    if (img.complete) { resolve(); return }
-    img.onload = () => resolve()
-    img.onerror = () => resolve()
-    img.src = url
-  })
-}
 
 function pick(photos: string[], exclude?: string) {
   const pool = exclude ? photos.filter(p => p !== exclude) : photos
@@ -25,91 +10,20 @@ function pick(photos: string[], exclude?: string) {
 }
 
 export function BackgroundSlideshow({ photos, intervalMs = 7000 }: Props) {
-  // bottom: always opacity-1, never fades out → no black gap ever
-  const [bottom, setBottom] = useState<string>('')
-  // top: fades in on top of bottom, then becomes the new bottom
-  const [top, setTop] = useState<string | null>(null)
-  const [topVisible, setTopVisible] = useState(false)
-
-  const bottomRef = useRef('')
-  // Ref for the ongoing transition's setTimeout, so we can cancel on overlap
-  const promoteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const transitionInProgressRef = useRef(false)
+  const [current, setCurrent] = useState(photos[0])
 
   useEffect(() => {
-    // Kick off with a random first image
-    const first = pick(photos)
-    preload(first).then(() => {
-      setBottom(first)
-      bottomRef.current = first
-      preload(pick(photos, first)) // warm up next
-    })
-
-    const runTransition = async () => {
-      // Skip if a transition is already running
-      if (transitionInProgressRef.current) return
-      transitionInProgressRef.current = true
-
-      const next = pick(photos, bottomRef.current)
-      await preload(next)
-
-      // Cancel any pending promote timer (safety net)
-      if (promoteTimerRef.current) {
-        clearTimeout(promoteTimerRef.current)
-        promoteTimerRef.current = null
-      }
-
-      // Place new image on top at opacity 0
-      setTop(next)
-      setTopVisible(false)
-
-      // Two rAF ticks to ensure the element is painted before transition starts
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => setTopVisible(true))
-      )
-
-      // After fade-in completes: promote top → bottom, hide top layer
-      promoteTimerRef.current = setTimeout(() => {
-        setBottom(next)
-        bottomRef.current = next
-        setTop(null)
-        setTopVisible(false)
-        transitionInProgressRef.current = false
-        preload(pick(photos, next)) // warm up next-next
-        promoteTimerRef.current = null
-      }, 2600) // slightly longer than the 2.5s CSS transition
-    }
-
-    const timer = setInterval(runTransition, intervalMs)
-
-    return () => {
-      clearInterval(timer)
-      if (promoteTimerRef.current) clearTimeout(promoteTimerRef.current)
-      transitionInProgressRef.current = false
-    }
+    const timer = setInterval(() => {
+      setCurrent(prev => pick(photos, prev))
+    }, intervalMs)
+    return () => clearInterval(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
-    <div className="absolute inset-0 overflow-hidden">
-      {/* Bottom layer — always fully visible, never fades */}
-      {bottom && (
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${bottom})` }}
-        />
-      )}
-      {/* Top layer — fades in over the bottom */}
-      {top && (
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${top})`,
-            opacity: topVisible ? 1 : 0,
-            transition: 'opacity 2.5s ease-in-out',
-          }}
-        />
-      )}
-    </div>
+    <div
+      className="absolute inset-0 bg-cover bg-center"
+      style={{ backgroundImage: `url(${current})` }}
+    />
   )
 }
