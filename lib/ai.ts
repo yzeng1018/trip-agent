@@ -254,9 +254,20 @@ export function generateItineraryStream(userMessage: string): ReadableStream {
             stream: true,
           })
         } else {
-          // Fallback: non-streaming
-          const content = await callAI(ITINERARY_SYSTEM_PROMPT, userMessage)
-          controller.enqueue(encoder.encode(content))
+          // Claude streaming
+          const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+          const claudeStream = await anthropic.messages.create({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 4096,
+            system: ITINERARY_SYSTEM_PROMPT,
+            messages: [{ role: 'user', content: userMessage }],
+            stream: true,
+          })
+          for await (const event of claudeStream) {
+            if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+              controller.enqueue(encoder.encode(event.delta.text))
+            }
+          }
           controller.close()
           return
         }

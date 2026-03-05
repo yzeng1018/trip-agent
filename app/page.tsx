@@ -49,7 +49,7 @@ export default function Home() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleSearch()
+              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSearch() }
             }}
             placeholder="设计一次难忘的樱花季日本之旅，4月中旬，两个人..."
             className="w-full resize-none text-gray-800 text-base leading-relaxed placeholder-gray-300 outline-none min-h-[80px]"
