@@ -6,7 +6,8 @@ import { TabiLogo } from '@/components/TabiLogo'
 import { ItineraryDay } from '@/components/ItineraryDay'
 import { ShareModal } from '@/components/ShareModal'
 import { jsonrepair } from 'jsonrepair'
-import { TripPlan, DayPlan } from '@/lib/types'
+import { TripPlan, DayPlan, BookingPlan } from '@/lib/types'
+import { BookingView } from '@/components/BookingView'
 
 // ── JSON sanitizer ───────────────────────────────────────────────
 
@@ -138,6 +139,7 @@ function Results() {
   const router = useRouter()
 
   const [plan, setPlan] = useState<TripPlan | null>(null)
+  const [booking, setBooking] = useState<BookingPlan | null>(null)
   const [streamDays, setStreamDays] = useState<DayPlan[]>([])
   const [streamMeta, setStreamMeta] = useState<{
     title?: string; summary?: string; destination?: string; duration?: number
@@ -178,6 +180,7 @@ function Results() {
     setStreamedChars(0)
     setStreamDays([])
     setStreamMeta(null)
+    setBooking(null)
 
     const abortController = new AbortController()
     let active = true   // guard: only update state if this effect is still current
@@ -206,7 +209,10 @@ function Results() {
           setStreamedChars(buf.length)
 
           // Extract header meta (title, summary, destination, duration)
-          if (!metaSetRef.current) {
+          // Only for itinerary responses — skip if type is booking/other
+          const typeMatch = buf.match(/"type"\s*:\s*"(\w+)"/)
+          const detectedType = typeMatch ? typeMatch[1] : null
+          if (!metaSetRef.current && detectedType !== 'booking' && detectedType !== 'other') {
             const title = extractString(buf, 'title')
             const destination = extractString(buf, 'destination')
             if (title || destination) {
@@ -247,8 +253,13 @@ function Results() {
             throw new Error('行程生成失败，请重试')
           }
         }
+        if (data.type === 'other') throw new Error(data.message)
         if (data.error) throw new Error(data.error)
-        setPlan(data)
+        if (data.type === 'booking') {
+          setBooking(data)
+        } else {
+          setPlan(data)
+        }
       })
       .catch(err => {
         if (!active || err.name === 'AbortError') return
@@ -270,6 +281,29 @@ function Results() {
         <button onClick={() => router.push('/')} className="px-4 py-2 bg-gray-900 text-white rounded-full text-sm">
           重新规划
         </button>
+      </div>
+    )
+  }
+
+  // ── Booking view ──
+  if (booking) {
+    return (
+      <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #1a1035 0%, #0f172a 100%)' }}>
+        <header className="px-4 pt-5 pb-4 flex items-center justify-between">
+          <button onClick={() => router.push('/')}>
+            <TabiLogo size="sm" theme="light" />
+          </button>
+          <button
+            onClick={() => router.push('/')}
+            className="text-sm text-white/50 hover:text-white transition-colors"
+          >
+            重新搜索
+          </button>
+        </header>
+        <div className="flex-1 px-4 pb-8 flex flex-col max-w-lg mx-auto w-full">
+          <p className="text-white/50 text-sm mb-6">{booking.query}</p>
+          <BookingView plan={booking} />
+        </div>
       </div>
     )
   }

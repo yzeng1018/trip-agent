@@ -40,6 +40,48 @@ export interface TripPlan {
   estimatedBudget?: string
 }
 
+// ── Booking Recommendations ────────────────────────────────────
+
+export interface FlightOption {
+  airline: string
+  flightNo: string
+  route: string          // e.g. "北京 → 东京成田"
+  departTime: string
+  arriveTime: string
+  duration: string
+  stops: number
+  priceRange: string     // e.g. "¥2800-3500/人"
+  highlights: string[]   // e.g. ["直飞", "含23kg行李"]
+  tips: string
+  bookingUrl: string     // Ctrip deep link
+}
+
+export interface HotelOption {
+  name: string
+  stars: number
+  area: string
+  pricePerNight: string  // e.g. "¥800-1200/晚"
+  highlights: string[]
+  tips: string
+  bookingUrl: string     // Booking.com deep link
+}
+
+export interface TicketOption {
+  attraction: string
+  priceRange: string
+  highlights: string[]
+  tips: string
+  bookingUrl: string     // Klook deep link
+}
+
+export interface BookingPlan {
+  type: 'booking'
+  query: string
+  flights: FlightOption[]
+  hotels: HotelOption[]
+  tickets: TicketOption[]
+}
+
 // ── Legacy flight/hotel types (kept for future use) ───────────
 
 export interface Hotel {
