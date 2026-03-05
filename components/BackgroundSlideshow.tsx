@@ -26,12 +26,15 @@ function pick(photos: string[], exclude?: string) {
 
 export function BackgroundSlideshow({ photos, intervalMs = 7000 }: Props) {
   // bottom: always opacity-1, never fades out → no black gap ever
-  const [bottom, setBottom] = useState(photos[0])
+  const [bottom, setBottom] = useState<string>('')
   // top: fades in on top of bottom, then becomes the new bottom
   const [top, setTop] = useState<string | null>(null)
   const [topVisible, setTopVisible] = useState(false)
 
-  const bottomRef = useRef(photos[0])
+  const bottomRef = useRef('')
+  // Ref for the ongoing transition's setTimeout, so we can cancel on overlap
+  const promoteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const transitionInProgressRef = useRef(false)
 
   useEffect(() => {
     // Kick off with a random first image
@@ -42,9 +45,19 @@ export function BackgroundSlideshow({ photos, intervalMs = 7000 }: Props) {
       preload(pick(photos, first)) // warm up next
     })
 
-    const timer = setInterval(async () => {
+    const runTransition = async () => {
+      // Skip if a transition is already running
+      if (transitionInProgressRef.current) return
+      transitionInProgressRef.current = true
+
       const next = pick(photos, bottomRef.current)
       await preload(next)
+
+      // Cancel any pending promote timer (safety net)
+      if (promoteTimerRef.current) {
+        clearTimeout(promoteTimerRef.current)
+        promoteTimerRef.current = null
+      }
 
       // Place new image on top at opacity 0
       setTop(next)
@@ -56,26 +69,36 @@ export function BackgroundSlideshow({ photos, intervalMs = 7000 }: Props) {
       )
 
       // After fade-in completes: promote top → bottom, hide top layer
-      setTimeout(() => {
+      promoteTimerRef.current = setTimeout(() => {
         setBottom(next)
         bottomRef.current = next
         setTop(null)
         setTopVisible(false)
+        transitionInProgressRef.current = false
         preload(pick(photos, next)) // warm up next-next
+        promoteTimerRef.current = null
       }, 2600) // slightly longer than the 2.5s CSS transition
-    }, intervalMs)
+    }
 
-    return () => clearInterval(timer)
+    const timer = setInterval(runTransition, intervalMs)
+
+    return () => {
+      clearInterval(timer)
+      if (promoteTimerRef.current) clearTimeout(promoteTimerRef.current)
+      transitionInProgressRef.current = false
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
     <div className="absolute inset-0 overflow-hidden">
       {/* Bottom layer — always fully visible, never fades */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${bottom})` }}
-      />
+      {bottom && (
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${bottom})` }}
+        />
+      )}
       {/* Top layer — fades in over the bottom */}
       {top && (
         <div
