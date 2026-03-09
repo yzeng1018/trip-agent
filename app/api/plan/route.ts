@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { generateItineraryStream } from '@/lib/ai'
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 
 export const maxDuration = 60
 
@@ -13,7 +13,7 @@ async function saveLog(input: string, captureStream: ReadableStream, startTime: 
       if (done) break
       chunks.push(typeof value === 'string' ? value : new TextDecoder().decode(value))
     }
-    await supabase.from('logs').insert({
+    await getSupabase().from('logs').insert({
       user_input: input,
       ai_output: chunks.join(''),
       duration_ms: Date.now() - startTime,
