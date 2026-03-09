@@ -27,6 +27,11 @@ Every mistake becomes a lesson. Keep this file SHORT — if a rule is obvious, d
 
 ## Project: Trip Agent
 
+### Platform Priority
+- **以手机端为主** — 产品设计、UI 布局、交互逻辑优先考虑移动端体验
+- 当前以手机浏览器网页为主，未来会上线 iOS、Android、微信小程序
+- 写 CSS/布局时默认 mobile-first，不要默认宽屏布局
+
 ### Tech Stack
 - Next.js (App Router) + TypeScript
 - Tailwind CSS v4 (uses oklch colors — affects image libraries)

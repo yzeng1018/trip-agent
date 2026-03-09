@@ -148,13 +148,6 @@ function Results() {
   const [streamedChars, setStreamedChars] = useState(0)
   const [error, setError] = useState('')
   const [showShare, setShowShare] = useState(false)
-  const [copied, setCopied] = useState(false)
-
-  function handleCopyLink() {
-    navigator.clipboard.writeText(window.location.href)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
 
   const bufRef = useRef('')
   const daysCountRef = useRef(0)
@@ -363,47 +356,23 @@ function Results() {
               <><span>·</span><span>{plan.request.travelers} 人</span></>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center">
             {plan && (
-              <>
-                <button
-                  onClick={handleCopyLink}
-                  className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1 transition-colors"
-                >
-                  {copied ? (
-                    <svg className="w-4 h-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" />
-                    </svg>
-                  )}
-                  {copied ? '已复制' : '复制链接'}
-                </button>
-                <button
-                  onClick={() => setShowShare(true)}
-                  className="text-sm text-indigo-500 hover:text-indigo-700 flex items-center gap-1 transition-colors"
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
-                  </svg>
-                  分享
-                </button>
-                <span className="text-gray-200">|</span>
-              </>
+              <button
+                onClick={() => setShowShare(true)}
+                className="text-sm text-indigo-500 hover:text-indigo-700 flex items-center gap-1 transition-colors"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                </svg>
+                分享
+              </button>
             )}
-            <button
-              onClick={() => router.push('/')}
-              className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              重新规划
-            </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto w-full px-4 py-8 flex-1">
+      <main className="max-w-3xl mx-auto w-full px-4 py-8 pb-28 flex-1">
         {/* Progress bar */}
         {!plan && (
           <div className="mb-8 bg-white rounded-2xl border border-gray-100 px-5 py-4">
@@ -481,6 +450,21 @@ function Results() {
           </div>
         )}
       </main>
+
+      {/* Bottom action bar */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-100 px-4 pt-3"
+        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+      >
+        <div className="max-w-3xl mx-auto">
+          <button
+            onClick={() => router.push('/')}
+            className="w-full py-3 rounded-2xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition-colors"
+          >
+            重新规划
+          </button>
+        </div>
+      </div>
 
       {showShare && plan && (
         <ShareModal plan={plan} onClose={() => setShowShare(false)} />
