@@ -132,6 +132,50 @@ function HeaderSkeleton() {
   )
 }
 
+// ── Inline Feedback ──────────────────────────────────────────────
+
+function InlineFeedback() {
+  const [content, setContent] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+
+  async function submit() {
+    if (!content.trim()) return
+    setStatus('loading')
+    const res = await fetch('/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    })
+    setStatus(res.ok ? 'done' : 'error')
+  }
+
+  return (
+    <div className="mt-6 mb-2 rounded-2xl border border-gray-100 bg-white p-5">
+      {status === 'done' ? (
+        <p className="text-center text-sm text-gray-400 py-2">感谢你的反馈 ✨</p>
+      ) : (
+        <>
+          <p className="text-sm font-medium text-gray-700 mb-3">这份行程对你有帮助吗？</p>
+          <textarea
+            className="w-full h-24 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 placeholder-gray-300 resize-none outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300"
+            placeholder="告诉我哪里可以改进，或者你想要的功能…"
+            value={content}
+            onChange={e => setContent(e.target.value)}
+          />
+          {status === 'error' && <p className="text-xs text-red-400 mt-1.5">提交失败，请稍后再试</p>}
+          <button
+            onClick={submit}
+            disabled={status === 'loading' || !content.trim()}
+            className="mt-3 w-full py-2.5 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            {status === 'loading' ? '提交中…' : '提交反馈'}
+          </button>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── Main component ───────────────────────────────────────────────
 
 function Results() {
@@ -449,6 +493,9 @@ function Results() {
             </ul>
           </div>
         )}
+
+        {/* Inline feedback — only when plan is fully loaded */}
+        {plan && <InlineFeedback />}
       </main>
 
       {/* Bottom action bar */}
