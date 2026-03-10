@@ -29,12 +29,31 @@ export interface DayPlan {
   activities: Activity[]
 }
 
+export interface Transport {
+  type: 'flight' | 'train' | 'bus'
+  description: string    // e.g. "上海虹桥 → 大阪关西，直飞约2.5小时"
+  duration: string       // e.g. "2.5小时"
+  priceRange: string     // e.g. "¥800-1500/人（经济舱）"
+  tips: string           // e.g. "提前2周购票更划算"
+}
+
+export interface HotelRecommendation {
+  name: string
+  area: string           // e.g. "难波·心斋桥商圈"
+  pricePerNight: string  // e.g. "¥400-600/晚"
+  highlights: string[]   // max 3 items
+  tips: string
+}
+
 export interface TripPlan {
   request: TripRequest
   title: string
   summary: string
   destination: string
   duration: number
+  gettingThere?: Transport
+  gettingAround?: string
+  hotel?: HotelRecommendation
   days: DayPlan[]
   practicalTips: string[]
   estimatedBudget?: string

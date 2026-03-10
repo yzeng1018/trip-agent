@@ -523,6 +523,30 @@ function Results() {
           <HeaderSkeleton />
         )}
 
+        {/* Getting there — only when plan is fully loaded */}
+        {plan?.gettingThere && (
+          <div className="mb-6 bg-white rounded-2xl border border-gray-100 p-5">
+            <h3 className="text-sm font-semibold text-gray-800 mb-3">
+              {plan.gettingThere.type === 'flight' ? '✈️' : plan.gettingThere.type === 'train' ? '🚄' : '🚌'} 怎么去
+            </h3>
+            <p className="text-sm font-medium text-gray-900 mb-1">{plan.gettingThere.description}</p>
+            <div className="flex items-center gap-3 text-xs text-gray-400 mt-2">
+              <span>⏱ {plan.gettingThere.duration}</span>
+              <span>·</span>
+              <span>{plan.gettingThere.priceRange}</span>
+            </div>
+            {plan.gettingThere.tips && (
+              <p className="text-xs text-indigo-500 mt-2">{plan.gettingThere.tips}</p>
+            )}
+            {plan.gettingAround && (
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <p className="text-xs text-gray-400 mb-1 font-medium">当地出行</p>
+                <p className="text-sm text-gray-600">{plan.gettingAround}</p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Days — rendered as they arrive */}
         {displayDays.map(day => (
           <ItineraryDay key={day.day} day={day} />
@@ -560,6 +584,23 @@ function Results() {
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {/* Hotel recommendation */}
+        {plan?.hotel && (
+          <div className="mt-4 bg-white rounded-2xl border border-gray-100 p-5">
+            <h3 className="text-sm font-semibold text-gray-800 mb-3">🏨 推荐住宿</h3>
+            <p className="text-base font-semibold text-gray-900">{plan.hotel.name}</p>
+            <p className="text-xs text-gray-400 mt-0.5 mb-3">{plan.hotel.area} · {plan.hotel.pricePerNight}</p>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {plan.hotel.highlights.map((h, i) => (
+                <span key={i} className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-xs rounded-full">{h}</span>
+              ))}
+            </div>
+            {plan.hotel.tips && (
+              <p className="text-xs text-gray-400">{plan.hotel.tips}</p>
+            )}
           </div>
         )}
 
