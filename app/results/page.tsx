@@ -246,6 +246,25 @@ function TripConfirmForm({
     styles: initialData.styles ?? [],
   })
 
+  // Auto-detect origin via geolocation if not extracted from message
+  useEffect(() => {
+    if (form.origin) return
+    if (!navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        fetch(`/api/geocode?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}`)
+          .then(r => r.json())
+          .then(data => {
+            if (data.city) setForm(f => f.origin ? f : { ...f, origin: data.city })
+          })
+          .catch(() => {})
+      },
+      () => {},
+      { timeout: 5000 }
+    )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   function toggleStyle(s: string) {
     setForm(f => ({
       ...f,
