@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { TabiLogo } from '@/components/TabiLogo'
 import { BackgroundSlideshow } from '@/components/BackgroundSlideshow'
@@ -16,54 +16,10 @@ const QUICK_ACTIONS = [
 export default function Home() {
   const router = useRouter()
   const [input, setInput] = useState('')
-  const [city, setCity] = useState<string | null>(null)
-  const [locState, setLocState] = useState<'prompt' | 'granted' | 'denied' | 'unsupported'>('prompt')
-
-  async function fetchCity(lat: number, lng: number) {
-    try {
-      const res = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`)
-      const data = await res.json()
-      if (data.city) setCity(data.city)
-    } catch { /* silent */ }
-  }
-
-  useEffect(() => {
-    if (!navigator.geolocation || !navigator.permissions) {
-      setLocState('unsupported')
-      return
-    }
-    navigator.permissions.query({ name: 'geolocation' }).then(perm => {
-      setLocState(perm.state as 'prompt' | 'granted' | 'denied')
-      if (perm.state === 'granted') {
-        // Already authorized — silently get city
-        navigator.geolocation.getCurrentPosition(
-          pos => fetchCity(pos.coords.latitude, pos.coords.longitude),
-          () => {},
-          { timeout: 8000 }
-        )
-      }
-      // Listen for changes (user changes permission in settings)
-      perm.onchange = () => setLocState(perm.state as 'prompt' | 'granted' | 'denied')
-    })
-  }, [])
-
-  function detectLocation() {
-    if (!navigator.geolocation) return
-    setLocState('granted') // optimistic
-    navigator.geolocation.getCurrentPosition(
-      pos => fetchCity(pos.coords.latitude, pos.coords.longitude),
-      () => setLocState('denied'),
-      { timeout: 8000 }
-    )
-  }
-
-  function buildMessage(prompt: string) {
-    return city ? `我从${city}出发，${prompt}` : prompt
-  }
 
   async function handleSearch() {
     if (!input.trim()) return
-    router.push(`/results?message=${encodeURIComponent(buildMessage(input))}`)
+    router.push(`/results?message=${encodeURIComponent(input)}`)
   }
 
   return (
@@ -112,27 +68,6 @@ export default function Home() {
               </svg>
             </button>
           </div>
-        </div>
-
-        {/* Location */}
-        <div className="mt-3 h-5">
-          {city ? (
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs">📍</span>
-              <span className="text-white/60 text-xs">从 <span className="text-white/90 font-medium">{city}</span> 出发</span>
-              <button onClick={() => setCity(null)} className="text-white/30 text-xs hover:text-white/60 ml-1">✕</button>
-            </div>
-          ) : locState === 'granted' ? (
-            <span className="text-white/40 text-xs">定位中…</span>
-          ) : locState === 'prompt' ? (
-            <button
-              onClick={detectLocation}
-              className="flex items-center gap-1.5 text-white/50 text-xs hover:text-white/80 transition-colors"
-            >
-              <span>📍</span>
-              <span>用我的位置</span>
-            </button>
-          ) : null}
         </div>
 
         {/* Quick actions */}

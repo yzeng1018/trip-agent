@@ -212,6 +212,168 @@ function InlineFeedback() {
   )
 }
 
+// ── Trip confirm form ────────────────────────────────────────────
+
+const DURATION_OPTIONS = ['3', '5', '7', '10+']
+const TRAVELER_OPTIONS = ['1', '2', '3+']
+const BUDGET_OPTIONS = ['不限', '5千', '1万', '2万', '5万+']
+const STYLE_OPTIONS = ['🍜 美食', '📸 摄影', '🏛 文化', '🛍 购物', '🌿 自然', '👨‍👩‍👧 亲子', '💑 蜜月', '🎒 背包']
+
+interface TripFormData {
+  destination: string
+  origin: string
+  duration: string
+  travelers: string
+  budget: string
+  styles: string[]
+}
+
+function TripConfirmForm({
+  initialData,
+  originalMessage,
+  onConfirm,
+}: {
+  initialData: Partial<TripFormData>
+  originalMessage: string
+  onConfirm: (enrichedMessage: string) => void
+}) {
+  const [form, setForm] = useState<TripFormData>({
+    destination: initialData.destination ?? '',
+    origin: initialData.origin ?? '',
+    duration: initialData.duration ?? '5',
+    travelers: initialData.travelers ?? '1',
+    budget: initialData.budget ?? '不限',
+    styles: initialData.styles ?? [],
+  })
+
+  function toggleStyle(s: string) {
+    setForm(f => ({
+      ...f,
+      styles: f.styles.includes(s) ? f.styles.filter(x => x !== s) : [...f.styles, s],
+    }))
+  }
+
+  function handleConfirm() {
+    const parts: string[] = []
+    if (form.origin.trim()) parts.push(`从${form.origin.trim()}出发`)
+    if (form.destination.trim()) parts.push(`去${form.destination.trim()}`)
+    if (form.duration === '10+') parts.push('行程10天以上')
+    else if (form.duration) parts.push(`${form.duration}天`)
+    if (form.travelers !== '1') parts.push(`${form.travelers}人同行`)
+    if (form.budget !== '不限') parts.push(`总预算${form.budget}`)
+    if (form.styles.length > 0) {
+      parts.push(`旅行风格：${form.styles.map(s => s.replace(/^\S+\s/, '')).join('、')}`)
+    }
+    parts.push(`用户需求：${originalMessage}`)
+    onConfirm(parts.join('，'))
+  }
+
+  const pillClass = (active: boolean) =>
+    `px-3 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
+      active ? 'bg-indigo-50 border-indigo-300 text-indigo-600' : 'border-gray-200 text-gray-500 bg-white'
+    }`
+  const tagClass = (active: boolean) =>
+    `px-3 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
+      active ? 'bg-green-50 border-green-300 text-green-700' : 'border-gray-200 text-gray-500 bg-white'
+    }`
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
+        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+          <TabiLogo size="sm" />
+          <span className="text-sm text-gray-400">确认需求</span>
+        </div>
+      </header>
+
+      <main className="max-w-3xl mx-auto w-full px-4 py-6 flex-1" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">确认你的旅行需求</h2>
+        <p className="text-sm text-gray-400 mb-5">AI 已帮你填好，可以直接修改</p>
+
+        {/* Destination + Origin */}
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-3">
+          <div className="px-4 pt-4 pb-3 border-b border-gray-50">
+            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">目的地</div>
+            <input
+              className="w-full text-base font-semibold text-gray-900 bg-transparent outline-none placeholder-gray-300"
+              value={form.destination}
+              onChange={e => setForm(f => ({ ...f, destination: e.target.value }))}
+              placeholder="去哪里？"
+            />
+          </div>
+          <div className="px-4 pt-4 pb-3">
+            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">出发地</div>
+            <input
+              className="w-full text-base font-semibold text-gray-900 bg-transparent outline-none placeholder-gray-300"
+              value={form.origin}
+              onChange={e => setForm(f => ({ ...f, origin: e.target.value }))}
+              placeholder="从哪里出发？"
+            />
+          </div>
+        </div>
+
+        {/* Duration + Travelers */}
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-3">
+          <div className="grid grid-cols-2">
+            <div className="px-4 pt-4 pb-3 border-r border-gray-50">
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">天数</div>
+              <div className="flex flex-wrap gap-1.5">
+                {DURATION_OPTIONS.map(d => (
+                  <button key={d} onClick={() => setForm(f => ({ ...f, duration: d }))} className={pillClass(form.duration === d)}>{d}</button>
+                ))}
+              </div>
+            </div>
+            <div className="px-4 pt-4 pb-3">
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">人数</div>
+              <div className="flex flex-wrap gap-1.5">
+                {TRAVELER_OPTIONS.map(t => (
+                  <button key={t} onClick={() => setForm(f => ({ ...f, travelers: t }))} className={pillClass(form.travelers === t)}>{t}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Budget */}
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-3">
+          <div className="px-4 pt-4 pb-3">
+            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">总预算</div>
+            <div className="flex flex-wrap gap-1.5">
+              {BUDGET_OPTIONS.map(b => (
+                <button key={b} onClick={() => setForm(f => ({ ...f, budget: b }))} className={pillClass(form.budget === b)}>{b}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Styles */}
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-3">
+          <div className="px-4 pt-4 pb-3">
+            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">旅行风格</div>
+            <div className="flex flex-wrap gap-2">
+              {STYLE_OPTIONS.map(s => (
+                <button key={s} onClick={() => toggleStyle(s)} className={tagClass(form.styles.includes(s))}>{s}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <div className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-100 px-4 pt-3" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}>
+        <div className="max-w-3xl mx-auto">
+          <button
+            onClick={handleConfirm}
+            disabled={!form.destination.trim()}
+            className="w-full py-3 rounded-2xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            开始规划
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main component ───────────────────────────────────────────────
 
 function Results() {
@@ -230,12 +392,42 @@ function Results() {
   const [showShare, setShowShare] = useState(false)
   const [warnings, setWarnings] = useState<string[]>([])
 
+  // Form phase state
+  const [phase, setPhase] = useState<'form' | 'streaming'>('form')
+  const [intentData, setIntentData] = useState<Partial<TripFormData>>({})
+  const [intentReady, setIntentReady] = useState(false)
+  const [confirmedMessage, setConfirmedMessage] = useState<string | null>(null)
+
   const bufRef = useRef('')
   const daysCountRef = useRef(0)
   const metaSetRef = useRef(false)
 
   const message = params.get('message')
   const rawPlan = params.get('plan')
+
+  // Intent parsing: pre-fill form from user message
+  useEffect(() => {
+    if (rawPlan) return // legacy path skips form
+    if (!message) return
+
+    setPhase('form')
+    setIntentReady(false)
+    setIntentData({})
+    setConfirmedMessage(null)
+    setPlan(null)
+    setError('')
+
+    let active = true
+    fetch('/api/intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: decodeURIComponent(message) }),
+    })
+      .then(r => r.json())
+      .then(data => { if (active) { setIntentData(data); setIntentReady(true) } })
+      .catch(() => { if (active) setIntentReady(true) }) // fallback: show empty form
+    return () => { active = false }
+  }, [message, rawPlan])
 
   useEffect(() => {
     // Legacy: plan already in URL
@@ -245,7 +437,7 @@ function Results() {
       return
     }
 
-    if (!message) { setError('暂无数据'); return }
+    if (!confirmedMessage) return
 
     // Reset state for this run
     bufRef.current = ''
@@ -265,7 +457,7 @@ function Results() {
     fetch('/api/plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: decodeURIComponent(message) }),
+      body: JSON.stringify({ message: confirmedMessage }),
       signal: abortController.signal,
     })
       .then(async res => {
@@ -340,7 +532,7 @@ function Results() {
             fetch('/api/check', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ message: decodeURIComponent(message), plan: data }),
+              body: JSON.stringify({ message: confirmedMessage, plan: data }),
             })
               .then(r => r.json())
               .then(result => {
@@ -362,7 +554,35 @@ function Results() {
       active = false
       abortController.abort()
     }
-  }, [message, rawPlan])
+  }, [confirmedMessage, rawPlan])
+
+  // ── Form phase ──
+  if (!rawPlan && phase === 'form') {
+    if (!intentReady) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+          <header className="bg-white border-b border-gray-100">
+            <div className="max-w-3xl mx-auto px-4 py-3">
+              <TabiLogo size="sm" />
+            </div>
+          </header>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-indigo-100 border-t-indigo-500 rounded-full animate-spin" />
+          </div>
+        </div>
+      )
+    }
+    return (
+      <TripConfirmForm
+        initialData={intentData}
+        originalMessage={decodeURIComponent(message ?? '')}
+        onConfirm={(enriched) => {
+          setConfirmedMessage(enriched)
+          setPhase('streaming')
+        }}
+      />
+    )
+  }
 
   // ── Error state ──
   if (error) {
@@ -605,7 +825,7 @@ function Results() {
         )}
 
         {/* Follow-up actions — only when plan is fully loaded */}
-        {plan && <FollowUpActions originalMessage={decodeURIComponent(message ?? '')} />}
+        {plan && <FollowUpActions originalMessage={confirmedMessage ?? decodeURIComponent(message ?? '')} />}
 
         {/* Inline feedback — only when plan is fully loaded */}
         {plan && <InlineFeedback />}

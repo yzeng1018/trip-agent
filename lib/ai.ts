@@ -314,6 +314,37 @@ export async function checkItinerary(
   }
 }
 
+// ── Form intent parsing ──────────────────────────────────────────
+
+const FORM_INTENT_PROMPT = `根据用户旅行需求，提取结构化信息。只返回 JSON，不要任何额外说明。
+
+{
+  "destination": "目的地，如「日本大阪」，没有则为 null",
+  "origin": "出发地，如「上海」，没有则为 null",
+  "duration": "天数，只能是以下之一：3/5/7/10+，根据用户说的天数映射，没有则为 null",
+  "travelers": "人数，只能是以下之一：1/2/3+，根据用户说的人数映射，没有则为 \"1\"",
+  "budget": "总预算，只能是以下之一：不限/5千/1万/2万/5万+，根据用户说的总预算映射，没有则为「不限」",
+  "styles": ["旅行风格数组，从以下选择：美食/摄影/文化/购物/自然/亲子/蜜月/背包，没有则为空数组"]
+}`
+
+export async function parseFormIntent(userMessage: string): Promise<{
+  destination?: string | null
+  origin?: string | null
+  duration?: string | null
+  travelers?: string
+  budget?: string
+  styles?: string[]
+}> {
+  try {
+    const raw = await callAI(FORM_INTENT_PROMPT, userMessage, 0)
+    const start = raw.search(/\{\s*"/)
+    if (start === -1) return {}
+    return JSON.parse(raw.slice(start))
+  } catch {
+    return {}
+  }
+}
+
 export async function generateSkeleton(userMessage: string): Promise<string> {
   try {
     const raw = await callAI(SKELETON_PROMPT, userMessage, 0.1)
