@@ -132,6 +132,42 @@ function HeaderSkeleton() {
   )
 }
 
+// ── Follow-up Actions ────────────────────────────────────────────
+
+const FOLLOW_UP_ACTIONS = [
+  { label: '压缩预算', icon: '💰', prompt: '帮我重新规划，调整为更低的预算，推荐性价比更高的选择' },
+  { label: '节奏放慢', icon: '🌿', prompt: '帮我重新规划，节奏轻松一些，减少每天的景点数量，多留白' },
+  { label: '更多美食', icon: '🍜', prompt: '帮我重新规划，加入更多当地特色美食和餐厅推荐' },
+  { label: '适合带娃', icon: '👨‍👩‍👧', prompt: '帮我重新规划，调整为适合带小孩的亲子行程' },
+]
+
+function FollowUpActions({ originalMessage }: { originalMessage: string }) {
+  const router = useRouter()
+
+  function handleAction(prompt: string) {
+    const refined = `${prompt}。我的原始需求是：${originalMessage}`
+    router.push(`/results?message=${encodeURIComponent(refined)}`)
+  }
+
+  return (
+    <div className="mt-6 mb-2">
+      <p className="text-xs text-gray-400 mb-3">想调整这份行程？</p>
+      <div className="grid grid-cols-2 gap-2">
+        {FOLLOW_UP_ACTIONS.map(({ label, icon, prompt }) => (
+          <button
+            key={label}
+            onClick={() => handleAction(prompt)}
+            className="flex items-center gap-2 px-4 py-3 rounded-2xl border border-gray-200 bg-white text-sm text-gray-700 hover:border-indigo-300 hover:text-indigo-600 active:scale-95 transition-all text-left"
+          >
+            <span>{icon}</span>
+            <span className="font-medium">{label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ── Inline Feedback ──────────────────────────────────────────────
 
 function InlineFeedback() {
@@ -493,6 +529,9 @@ function Results() {
             </ul>
           </div>
         )}
+
+        {/* Follow-up actions — only when plan is fully loaded */}
+        {plan && <FollowUpActions originalMessage={decodeURIComponent(message ?? '')} />}
 
         {/* Inline feedback — only when plan is fully loaded */}
         {plan && <InlineFeedback />}
