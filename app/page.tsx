@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { TabiLogo } from '@/components/TabiLogo'
 import { BackgroundSlideshow } from '@/components/BackgroundSlideshow'
@@ -18,28 +18,24 @@ export default function Home() {
   const [input, setInput] = useState('')
   const [city, setCity] = useState<string | null>(null)
 
-  useEffect(() => {
-    // Primary: IP-based location via Vercel headers (no permission needed)
-    fetch('/api/location')
-      .then(r => r.json())
-      .then(data => { if (data.city) setCity(data.city) })
-      .catch(() => {})
-
-    // Secondary: browser geolocation for more accurate Chinese city names
+  async function detectLocation() {
     if (!navigator.geolocation) return
+    setCity('detecting')
     navigator.geolocation.getCurrentPosition(
       async pos => {
         const { latitude: lat, longitude: lng } = pos.coords
         try {
           const res = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`)
           const data = await res.json()
-          if (data.city) setCity(data.city) // overrides IP-based if granted
-        } catch { /* silent */ }
+          setCity(data.city ?? null)
+        } catch {
+          setCity(null)
+        }
       },
-      () => { /* permission denied — silent, IP result stays */ },
+      () => { setCity(null) },
       { timeout: 8000 }
     )
-  }, [])
+  }
 
   function buildMessage(prompt: string) {
     return city ? `我从${city}出发，${prompt}` : prompt
@@ -98,13 +94,28 @@ export default function Home() {
           </div>
         </div>
 
-        {/* City tag */}
-        {city && (
-          <div className="flex items-center gap-1.5 mt-3">
-            <span className="text-white/50 text-xs">📍</span>
-            <span className="text-white/60 text-xs">从 <span className="text-white/90 font-medium">{city}</span> 出发</span>
-          </div>
-        )}
+        {/* Location */}
+        <div className="mt-3">
+          {!city && city !== 'detecting' && (
+            <button
+              onClick={detectLocation}
+              className="flex items-center gap-1.5 text-white/50 text-xs hover:text-white/80 transition-colors"
+            >
+              <span>📍</span>
+              <span>用我的位置</span>
+            </button>
+          )}
+          {city === 'detecting' && (
+            <span className="text-white/40 text-xs">定位中…</span>
+          )}
+          {city && city !== 'detecting' && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs">📍</span>
+              <span className="text-white/60 text-xs">从 <span className="text-white/90 font-medium">{city}</span> 出发</span>
+              <button onClick={() => setCity(null)} className="text-white/30 text-xs hover:text-white/60 ml-1">✕</button>
+            </div>
+          )}
+        </div>
 
         {/* Quick actions */}
         <div className="flex flex-wrap gap-2 mt-4">
