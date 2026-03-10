@@ -20,6 +20,16 @@ export default function Home() {
 
   async function detectLocation() {
     if (!navigator.geolocation) return
+
+    // Check if permission was already denied
+    if (navigator.permissions) {
+      const perm = await navigator.permissions.query({ name: 'geolocation' })
+      if (perm.state === 'denied') {
+        setCity('denied')
+        return
+      }
+    }
+
     setCity('detecting')
     navigator.geolocation.getCurrentPosition(
       async pos => {
@@ -32,7 +42,7 @@ export default function Home() {
           setCity(null)
         }
       },
-      () => { setCity(null) },
+      () => { setCity('denied') },
       { timeout: 8000 }
     )
   }
@@ -108,7 +118,10 @@ export default function Home() {
           {city === 'detecting' && (
             <span className="text-white/40 text-xs">定位中…</span>
           )}
-          {city && city !== 'detecting' && (
+          {city === 'denied' && (
+            <span className="text-white/40 text-xs">位置权限已关闭，可在浏览器设置中开启</span>
+          )}
+          {city && city !== 'detecting' && city !== 'denied' && (
             <div className="flex items-center gap-1.5">
               <span className="text-xs">📍</span>
               <span className="text-white/60 text-xs">从 <span className="text-white/90 font-medium">{city}</span> 出发</span>
@@ -122,7 +135,7 @@ export default function Home() {
           {QUICK_ACTIONS.map((action, i) => (
             <button
               key={i}
-              onClick={() => router.push(`/results?message=${encodeURIComponent(buildMessage(action.prompt))}`)}
+              onClick={() => setInput(action.prompt)}
               className="px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white text-sm rounded-full hover:bg-white/30 transition-all"
             >
               {action.label}
