@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { TabiLogo } from '@/components/TabiLogo'
 import { BackgroundSlideshow } from '@/components/BackgroundSlideshow'
@@ -16,10 +16,31 @@ const QUICK_ACTIONS = [
 export default function Home() {
   const router = useRouter()
   const [input, setInput] = useState('')
+  const [city, setCity] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        const { latitude: lat, longitude: lng } = pos.coords
+        try {
+          const res = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`)
+          const data = await res.json()
+          if (data.city) setCity(data.city)
+        } catch { /* silent */ }
+      },
+      () => { /* permission denied — silent */ },
+      { timeout: 8000 }
+    )
+  }, [])
+
+  function buildMessage(prompt: string) {
+    return city ? `我从${city}出发，${prompt}` : prompt
+  }
 
   async function handleSearch() {
     if (!input.trim()) return
-    router.push(`/results?message=${encodeURIComponent(input)}`)
+    router.push(`/results?message=${encodeURIComponent(buildMessage(input))}`)
   }
 
   return (
@@ -70,12 +91,20 @@ export default function Home() {
           </div>
         </div>
 
+        {/* City tag */}
+        {city && (
+          <div className="flex items-center gap-1.5 mt-3">
+            <span className="text-white/50 text-xs">📍</span>
+            <span className="text-white/60 text-xs">从 <span className="text-white/90 font-medium">{city}</span> 出发</span>
+          </div>
+        )}
+
         {/* Quick actions */}
-        <div className="flex flex-wrap gap-2 mt-5">
+        <div className="flex flex-wrap gap-2 mt-4">
           {QUICK_ACTIONS.map((action, i) => (
             <button
               key={i}
-              onClick={() => setInput(action.prompt)}
+              onClick={() => router.push(`/results?message=${encodeURIComponent(buildMessage(action.prompt))}`)}
               className="px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white text-sm rounded-full hover:bg-white/30 transition-all"
             >
               {action.label}
