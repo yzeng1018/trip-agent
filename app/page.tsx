@@ -122,6 +122,8 @@ export default function Home() {
               <span className="text-white/60 text-xs">从 <span className="text-white/90 font-medium">{city}</span> 出发</span>
               <button onClick={() => setCity(null)} className="text-white/30 text-xs hover:text-white/60 ml-1">✕</button>
             </div>
+          ) : locState === 'granted' ? (
+            <span className="text-white/40 text-xs">定位中…</span>
           ) : locState === 'prompt' ? (
             <button
               onClick={detectLocation}
