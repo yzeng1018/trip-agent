@@ -228,6 +228,7 @@ function Results() {
   const [streamedChars, setStreamedChars] = useState(0)
   const [error, setError] = useState('')
   const [showShare, setShowShare] = useState(false)
+  const [warnings, setWarnings] = useState<string[]>([])
 
   const bufRef = useRef('')
   const daysCountRef = useRef(0)
@@ -254,6 +255,8 @@ function Results() {
     setStreamDays([])
     setStreamMeta(null)
     setBooking(null)
+    setPlan(null)
+    setWarnings([])
 
     const abortController = new AbortController()
     let active = true   // guard: only update state if this effect is still current
@@ -332,6 +335,21 @@ function Results() {
           setBooking(data)
         } else {
           setPlan(data)
+          // Run checker in background — non-blocking
+          if (active) {
+            fetch('/api/check', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message: decodeURIComponent(message), plan: data }),
+            })
+              .then(r => r.json())
+              .then(result => {
+                if (active && !result.ok && result.warnings?.length) {
+                  setWarnings(result.warnings)
+                }
+              })
+              .catch(() => {}) // checker failure is silent
+          }
         }
       })
       .catch(err => {
@@ -513,6 +531,21 @@ function Results() {
         {/* Skeleton for the day currently being generated */}
         {isStreaming && (
           <DayLoadingSkeleton dayNumber={displayDays.length + 1} />
+        )}
+
+        {/* Checker warnings */}
+        {warnings.length > 0 && (
+          <div className="mt-4 bg-orange-50 border border-orange-100 rounded-2xl p-5">
+            <h3 className="text-sm font-semibold text-orange-800 mb-3">⚠️ 行程提醒</h3>
+            <ul className="space-y-2">
+              {warnings.map((w, i) => (
+                <li key={i} className="text-sm text-orange-700 flex items-start gap-2">
+                  <span className="mt-0.5 shrink-0">•</span>
+                  {w}
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
 
         {/* Practical tips — only when fully done */}

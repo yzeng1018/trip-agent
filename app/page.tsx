@@ -7,9 +7,10 @@ import { BackgroundSlideshow } from '@/components/BackgroundSlideshow'
 import { TRAVEL_PHOTOS } from '@/lib/photos'
 
 const QUICK_ACTIONS = [
-  { label: '旅行灵感', prompt: '给我推荐一个适合现在去的目的地' },
-  { label: '行程规划', prompt: '帮我规划一次旅行行程' },
-  { label: '机票酒店', prompt: '帮我预定机票和酒店' },
+  { label: '想去巴黎', prompt: '我一直想去巴黎，7月份，一个人，10天，文艺感强一点，帮我规划一下，预算2万' },
+  { label: '旅行灵感', prompt: '现在是春天，推荐一个适合两人出行的目的地，喜欢美食和文艺感，预算人均1万左右' },
+  { label: '行程规划', prompt: '帮我规划5天大阪行程，4月初出发，两个人，喜欢吃喝玩乐，不想走太多路' },
+  { label: '机票酒店', prompt: '从上海飞东京，4月15日出发，两个人，经济舱，顺便推荐住新宿还是浅草哪个更方便' },
 ]
 
 export default function Home() {
