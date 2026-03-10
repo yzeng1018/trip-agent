@@ -19,6 +19,13 @@ export default function Home() {
   const [city, setCity] = useState<string | null>(null)
 
   useEffect(() => {
+    // Primary: IP-based location via Vercel headers (no permission needed)
+    fetch('/api/location')
+      .then(r => r.json())
+      .then(data => { if (data.city) setCity(data.city) })
+      .catch(() => {})
+
+    // Secondary: browser geolocation for more accurate Chinese city names
     if (!navigator.geolocation) return
     navigator.geolocation.getCurrentPosition(
       async pos => {
@@ -26,10 +33,10 @@ export default function Home() {
         try {
           const res = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`)
           const data = await res.json()
-          if (data.city) setCity(data.city)
+          if (data.city) setCity(data.city) // overrides IP-based if granted
         } catch { /* silent */ }
       },
-      () => { /* permission denied — silent */ },
+      () => { /* permission denied — silent, IP result stays */ },
       { timeout: 8000 }
     )
   }, [])
