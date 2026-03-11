@@ -589,6 +589,7 @@ function Results() {
         initialData={intentData}
         originalMessage={decodeURIComponent(message ?? '')}
         onConfirm={(enriched) => {
+          setStreaming(true)
           setConfirmedMessage(enriched)
           setPhase('streaming')
         }}
@@ -632,7 +633,7 @@ function Results() {
   }
 
   // ── Initial loading (stream not started yet) ──
-  if (!plan && !streamMeta && !streamDays.length) {
+  if (!plan && !streamMeta && !streamDays.length && !streaming) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <header className="bg-white border-b border-gray-100">
