@@ -232,10 +232,12 @@ function TripConfirmForm({
   initialData,
   originalMessage,
   onConfirm,
+  intentReady = false,
 }: {
   initialData: Partial<TripFormData>
   originalMessage: string
   onConfirm: (enrichedMessage: string) => void
+  intentReady?: boolean
 }) {
   const [form, setForm] = useState<TripFormData>({
     destination: initialData.destination ?? '',
@@ -245,6 +247,20 @@ function TripConfirmForm({
     budget: initialData.budget ?? '不限',
     styles: initialData.styles ?? [],
   })
+
+  // When intent data arrives, fill in fields the user hasn't touched yet
+  useEffect(() => {
+    if (!intentReady) return
+    setForm(f => ({
+      destination: f.destination || initialData.destination || '',
+      origin: f.origin || initialData.origin || '',
+      duration: initialData.duration || f.duration,
+      travelers: initialData.travelers || f.travelers,
+      budget: initialData.budget || f.budget,
+      styles: f.styles.length > 0 ? f.styles : (initialData.styles ?? []),
+    }))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [intentReady])
 
   // Auto-detect origin via IP geolocation (no permission required)
   useEffect(() => {
@@ -305,7 +321,10 @@ function TripConfirmForm({
         {/* Destination + Origin */}
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-3">
           <div className="px-4 pt-4 pb-3 border-b border-gray-50">
-            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">目的地</div>
+            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+              目的地
+              {!intentReady && <span className="text-[10px] text-indigo-400 font-normal normal-case tracking-normal animate-pulse">AI 解析中…</span>}
+            </div>
             <input
               className="w-full text-base font-semibold text-gray-900 bg-transparent outline-none placeholder-gray-300"
               value={form.destination}
@@ -409,6 +428,8 @@ function Results() {
   const [intentData, setIntentData] = useState<Partial<TripFormData>>({})
   const [intentReady, setIntentReady] = useState(false)
   const [confirmedMessage, setConfirmedMessage] = useState<string | null>(null)
+
+  const [fakeProgress, setFakeProgress] = useState(0)
 
   const bufRef = useRef('')
   const daysCountRef = useRef(0)
@@ -570,24 +591,11 @@ function Results() {
 
   // ── Form phase ──
   if (!rawPlan && phase === 'form') {
-    if (!intentReady) {
-      return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-          <header className="bg-white border-b border-gray-100">
-            <div className="max-w-3xl mx-auto px-4 py-3">
-              <TabiLogo size="sm" />
-            </div>
-          </header>
-          <div className="flex-1 flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-indigo-100 border-t-indigo-500 rounded-full animate-spin" />
-          </div>
-        </div>
-      )
-    }
     return (
       <TripConfirmForm
         initialData={intentData}
         originalMessage={decodeURIComponent(message ?? '')}
+        intentReady={intentReady}
         onConfirm={(enriched) => {
           setStreaming(true)
           setConfirmedMessage(enriched)
@@ -648,6 +656,14 @@ function Results() {
     )
   }
 
+  // Fake progress: starts at 8% immediately, creeps toward 38% until real data arrives
+  useEffect(() => {
+    if (!streaming || plan) { setFakeProgress(0); return }
+    setFakeProgress(8)
+    const id = setInterval(() => setFakeProgress(p => p + (38 - p) * 0.07), 500)
+    return () => clearInterval(id)
+  }, [streaming, plan])
+
   // ── Progressive / full render ──
   const isStreaming = streaming && !plan
   const displayDays = plan?.days ?? streamDays
@@ -660,7 +676,7 @@ function Results() {
   const charProgress = Math.min(88, (streamedChars / estimatedTotal) * 100)
   const dayProgress = completedDays > 0 ? Math.min(92, (completedDays / totalDays) * 95) : 0
   const rawProgress = isStreaming
-    ? Math.max(charProgress, dayProgress)
+    ? Math.max(fakeProgress, charProgress, dayProgress)
     : plan ? 100 : 0
   const pct = Math.round(rawProgress)
 
