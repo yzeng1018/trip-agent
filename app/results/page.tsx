@@ -589,6 +589,14 @@ function Results() {
     }
   }, [confirmedMessage, rawPlan])
 
+  // Fake progress: starts at 8% immediately, creeps toward 38% until real data arrives
+  useEffect(() => {
+    if (!streaming || plan) { setFakeProgress(0); return }
+    setFakeProgress(8)
+    const id = setInterval(() => setFakeProgress(p => p + (38 - p) * 0.07), 500)
+    return () => clearInterval(id)
+  }, [streaming, plan])
+
   // ── Form phase ──
   if (!rawPlan && phase === 'form') {
     return (
@@ -655,14 +663,6 @@ function Results() {
       </div>
     )
   }
-
-  // Fake progress: starts at 8% immediately, creeps toward 38% until real data arrives
-  useEffect(() => {
-    if (!streaming || plan) { setFakeProgress(0); return }
-    setFakeProgress(8)
-    const id = setInterval(() => setFakeProgress(p => p + (38 - p) * 0.07), 500)
-    return () => clearInterval(id)
-  }, [streaming, plan])
 
   // ── Progressive / full render ──
   const isStreaming = streaming && !plan
