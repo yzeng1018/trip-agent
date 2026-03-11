@@ -228,6 +228,44 @@ interface TripFormData {
   styles: string[]
 }
 
+/** Instant client-side parse — no API needed, covers common patterns */
+function quickParseIntent(msg: string): Partial<TripFormData> {
+  const result: Partial<TripFormData> = {}
+
+  // Duration: "7天" "10天以上" etc.
+  const dayMatch = msg.match(/(\d+)\s*天/)
+  if (dayMatch) {
+    const d = parseInt(dayMatch[1])
+    result.duration = d <= 4 ? '3' : d <= 6 ? '5' : d <= 9 ? '7' : '10+'
+  }
+
+  // Travelers: "2人" "两个人" "三个人" etc.
+  const travelerMatch = msg.match(/([两二2三3四五六七八九]|\d+)\s*[个]?\s*人/)
+  if (travelerMatch) {
+    const t = travelerMatch[1]
+    result.travelers = (t === '1' || t === '一') ? '1'
+      : (t === '2' || t === '两' || t === '二') ? '2' : '3+'
+  }
+
+  // Budget
+  if (/[五5]\s*万/.test(msg)) result.budget = '5万+'
+  else if (/[两2二]\s*万/.test(msg)) result.budget = '2万'
+  else if (/1\s*万|一\s*万/.test(msg)) result.budget = '1万'
+  else if (/[五5]\s*千/.test(msg)) result.budget = '5千'
+
+  // Styles
+  const styleMap: Record<string, string> = {
+    '美食': '🍜 美食', '摄影': '📸 摄影', '文化': '🏛 文化', '购物': '🛍 购物',
+    '自然': '🌿 自然', '亲子': '👨‍👩‍👧 亲子', '蜜月': '💑 蜜月', '背包': '🎒 背包',
+  }
+  const styles = Object.entries(styleMap)
+    .filter(([k]) => msg.includes(k))
+    .map(([, v]) => v)
+  if (styles.length > 0) result.styles = styles
+
+  return result
+}
+
 function TripConfirmForm({
   initialData,
   originalMessage,
@@ -445,10 +483,12 @@ function Results() {
 
     setPhase('form')
     setIntentReady(false)
-    setIntentData({})
     setConfirmedMessage(null)
     setPlan(null)
     setError('')
+
+    // Instant local parse — fills duration/travelers/budget immediately
+    setIntentData(quickParseIntent(decodeURIComponent(message)))
 
     let active = true
     fetch('/api/intent', {
@@ -457,7 +497,7 @@ function Results() {
       body: JSON.stringify({ message: decodeURIComponent(message) }),
     })
       .then(r => r.json())
-      .then(data => { if (active) { setIntentData(data); setIntentReady(true) } })
+      .then(data => { if (active) { setIntentData(prev => ({ ...prev, ...data })); setIntentReady(true) } })
       .catch(() => { if (active) setIntentReady(true) }) // fallback: show empty form
     return () => { active = false }
   }, [message, rawPlan])
