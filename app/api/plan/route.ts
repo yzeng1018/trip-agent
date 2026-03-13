@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { generateItineraryStream, generateSkeleton } from '@/lib/ai'
+import { generateItineraryStream } from '@/lib/ai'
 import { getSupabase } from '@/lib/supabase'
 
 export const maxDuration = 60
@@ -24,12 +24,11 @@ async function saveLog(input: string, captureStream: ReadableStream, startTime: 
 }
 
 export async function POST(req: NextRequest) {
-  const { message } = await req.json()
+  const { message, skeleton } = await req.json()
   if (!message?.trim()) {
     return new Response(JSON.stringify({ error: '请描述你的旅行需求' }), { status: 400 })
   }
   const startTime = Date.now()
-  const skeleton = await generateSkeleton(message)
   const stream = generateItineraryStream(message, skeleton || undefined)
   const [responseStream, captureStream] = stream.tee()
   saveLog(message, captureStream, startTime)

@@ -472,6 +472,7 @@ function Results() {
   const bufRef = useRef('')
   const daysCountRef = useRef(0)
   const metaSetRef = useRef(false)
+  const skeletonRef = useRef('')
 
   const message = params.get('message')
   const rawPlan = params.get('plan')
@@ -486,15 +487,28 @@ function Results() {
     setConfirmedMessage(null)
     setPlan(null)
     setError('')
+    skeletonRef.current = ''
 
     // Instant local parse — fills duration/travelers/budget immediately
     setIntentData(quickParseIntent(decodeURIComponent(message)))
 
     let active = true
+    const decoded = decodeURIComponent(message)
+
+    // Pre-fetch skeleton in background while user reviews the form
+    fetch('/api/skeleton', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: decoded }),
+    })
+      .then(r => r.text())
+      .then(s => { if (active) skeletonRef.current = s })
+      .catch(() => {})
+
     fetch('/api/intent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: decodeURIComponent(message) }),
+      body: JSON.stringify({ message: decoded }),
     })
       .then(r => r.json())
       .then(data => { if (active) { setIntentData(prev => ({ ...prev, ...data })); setIntentReady(true) } })
@@ -530,7 +544,7 @@ function Results() {
     fetch('/api/plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: confirmedMessage }),
+      body: JSON.stringify({ message: confirmedMessage, skeleton: skeletonRef.current || undefined }),
       signal: abortController.signal,
     })
       .then(async res => {
