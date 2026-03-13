@@ -14,16 +14,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tabi — AI 旅行助手",
-  description: "用自然语言描述出行需求，AI 帮你找到最合适的机票和酒店",
+  title: "Tabi — AI 旅行规划助手",
+  description: "描述你的出行想法，Tabi 用 AI 帮你生成专属旅行行程，包含每日安排、交通、住宿和贴士。",
   metadataBase: new URL("https://www.asktabi.com"),
   openGraph: {
-    title: "Tabi — AI 旅行助手",
-    description: "用自然语言描述出行需求，AI 帮你找到最合适的机票和酒店",
+    title: "Tabi — AI 旅行规划助手",
+    description: "描述你的出行想法，Tabi 用 AI 帮你生成专属旅行行程，包含每日安排、交通、住宿和贴士。",
     url: "https://www.asktabi.com",
     siteName: "Tabi",
     locale: "zh_CN",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tabi — AI 旅行规划助手",
+    description: "描述你的出行想法，Tabi 用 AI 帮你生成专属旅行行程，包含每日安排、交通、住宿和贴士。",
   },
   alternates: {
     canonical: "https://www.asktabi.com",
