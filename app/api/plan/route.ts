@@ -4,7 +4,7 @@ import { getSupabase } from '@/lib/supabase'
 
 export const maxDuration = 60
 
-async function saveLog(input: string, captureStream: ReadableStream, startTime: number) {
+async function saveLog(input: string, captureStream: ReadableStream, startTime: number, ip: string) {
   const reader = captureStream.getReader()
   const chunks: string[] = []
   try {
@@ -17,6 +17,7 @@ async function saveLog(input: string, captureStream: ReadableStream, startTime: 
       user_input: input,
       ai_output: chunks.join(''),
       duration_ms: Date.now() - startTime,
+      ip,
     })
   } catch {
     // logging failure should never break the main response
@@ -29,9 +30,10 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ error: '请描述你的旅行需求' }), { status: 400 })
   }
   const startTime = Date.now()
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
   const stream = generateItineraryStream(message, skeleton || undefined)
   const [responseStream, captureStream] = stream.tee()
-  saveLog(message, captureStream, startTime)
+  saveLog(message, captureStream, startTime, ip)
   return new Response(responseStream, {
     headers: { 'Content-Type': 'text/plain; charset=utf-8' },
   })
