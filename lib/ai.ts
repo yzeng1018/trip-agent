@@ -236,7 +236,7 @@ async function callAI(systemPrompt: string, userMessage: string, temperature = 0
       baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     })
     const res = await qwen.chat.completions.create({
-      model: 'qwen-turbo',
+      model: 'qwen-plus',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userMessage },
@@ -387,7 +387,7 @@ export function generateItineraryStream(userMessage: string, skeleton?: string):
             baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
           })
           stream = await qwen.chat.completions.create({
-            model: 'qwen-turbo',
+            model: 'qwen-plus',
             messages: [
               { role: 'system', content: ITINERARY_SYSTEM_PROMPT },
               { role: 'user', content: enrichedMessage },
