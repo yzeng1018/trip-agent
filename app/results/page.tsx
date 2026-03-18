@@ -6,7 +6,7 @@ import { TabiLogo } from '@/components/TabiLogo'
 import { ItineraryDay } from '@/components/ItineraryDay'
 import { ShareModal } from '@/components/ShareModal'
 import { jsonrepair } from 'jsonrepair'
-import { TripPlan, DayPlan, BookingPlan } from '@/lib/types'
+import { TripPlan, DayPlan, BookingPlan, TripFormData } from '@/lib/types'
 import { BookingView } from '@/components/BookingView'
 
 // ── JSON sanitizer ───────────────────────────────────────────────
@@ -219,14 +219,6 @@ const TRAVELER_OPTIONS = ['1', '2', '3+']
 const BUDGET_OPTIONS = ['不限', '5千', '1万', '2万', '5万+']
 const STYLE_OPTIONS = ['🍜 美食', '📸 摄影', '🏛 文化', '🛍 购物', '🌿 自然', '👨‍👩‍👧 亲子', '💑 蜜月', '🎒 背包']
 
-interface TripFormData {
-  destination: string
-  origin: string
-  duration: string
-  travelers: string
-  budget: string
-  styles: string[]
-}
 
 /** Instant client-side parse — no API needed, covers common patterns */
 function quickParseIntent(msg: string): Partial<TripFormData> {
@@ -274,7 +266,7 @@ function TripConfirmForm({
 }: {
   initialData: Partial<TripFormData>
   originalMessage: string
-  onConfirm: (enrichedMessage: string) => void
+  onConfirm: (enrichedMessage: string, formData: TripFormData) => void
   intentReady?: boolean
 }) {
   const [form, setForm] = useState<TripFormData>({
@@ -331,7 +323,7 @@ function TripConfirmForm({
       parts.push(`旅行风格：${form.styles.map(s => s.replace(/^\S+\s/, '')).join('、')}`)
     }
     parts.push(`用户需求：${originalMessage}`)
-    onConfirm(parts.join('，'))
+    onConfirm(parts.join('，'), form)
   }
 
   const pillClass = (active: boolean) =>
@@ -466,6 +458,7 @@ function Results() {
   const [intentData, setIntentData] = useState<Partial<TripFormData>>({})
   const [intentReady, setIntentReady] = useState(false)
   const [confirmedMessage, setConfirmedMessage] = useState<string | null>(null)
+  const [formSnapshot, setFormSnapshot] = useState<TripFormData | null>(null)
 
   const [fakeProgress, setFakeProgress] = useState(0)
 
@@ -658,7 +651,8 @@ function Results() {
         initialData={intentData}
         originalMessage={decodeURIComponent(message ?? '')}
         intentReady={intentReady}
-        onConfirm={(enriched) => {
+        onConfirm={(enriched, formData) => {
+          setFormSnapshot(formData)
           setStreaming(true)
           setConfirmedMessage(enriched)
           setPhase('streaming')
@@ -696,7 +690,7 @@ function Results() {
         </header>
         <div className="flex-1 px-4 pb-8 flex flex-col max-w-lg mx-auto w-full">
           <p className="text-white/50 text-sm mb-6">{booking.query}</p>
-          <BookingView plan={booking} />
+          <BookingView plan={booking} intent={formSnapshot ?? undefined} />
         </div>
       </div>
     )

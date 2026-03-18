@@ -101,6 +101,18 @@ export interface BookingPlan {
   tickets: TicketOption[]
 }
 
+// ── Trip confirm form ─────────────────────────────────────────
+
+export interface TripFormData {
+  destination: string
+  origin: string
+  duration: string    // "3" | "5" | "7" | "10+"
+  travelers: string   // "1" | "2" | "3+"
+  budget: string
+  styles: string[]
+  departDate?: string // YYYY-MM-DD, set when user explicitly specifies a date
+}
+
 // ── Legacy flight/hotel types (kept for future use) ───────────
 
 export interface Hotel {

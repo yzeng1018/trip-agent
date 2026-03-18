@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { BookingPlan, FlightOption, HotelOption, TicketOption } from '@/lib/types'
+import { BookingPlan, FlightOption, HotelOption, TicketOption, TripFormData } from '@/lib/types'
+import { buildBookingUrl } from '@/lib/booking'
+import { BookingConfirmModal } from './BookingConfirmModal'
 
 type Section = 'flights' | 'hotels' | 'tickets'
 
@@ -116,7 +118,7 @@ function TicketCard({ item }: { item: TicketOption }) {
   )
 }
 
-export function BookingView({ plan }: { plan: BookingPlan }) {
+export function BookingView({ plan, intent }: { plan: BookingPlan; intent?: Partial<TripFormData> }) {
   const availableSections = (
     ['flights', 'hotels', 'tickets'] as Section[]
   ).filter(s => plan[s].length > 0)
@@ -124,11 +126,17 @@ export function BookingView({ plan }: { plan: BookingPlan }) {
   const [section, setSection] = useState<Section>(availableSections[0] ?? 'flights')
   const [indices, setIndices] = useState<Record<Section, number>>({ flights: 0, hotels: 0, tickets: 0 })
   const [animating, setAnimating] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
 
   const items = plan[section]
   const idx = indices[section]
   const currentItem = items[idx]
   const hasNext = idx < items.length - 1
+
+  const itemType = section === 'flights' ? 'flight' : section === 'hotels' ? 'hotel' : 'ticket'
+  const bookingUrl = currentItem
+    ? buildBookingUrl(intent ?? {}, currentItem, itemType)
+    : '#'
 
   function goNext() {
     if (!hasNext || animating) return
@@ -137,12 +145,6 @@ export function BookingView({ plan }: { plan: BookingPlan }) {
       setIndices(prev => ({ ...prev, [section]: prev[section] + 1 }))
       setAnimating(false)
     }, 250)
-  }
-
-  function getBookingUrl() {
-    if (section === 'flights') return (currentItem as FlightOption).bookingUrl || '#'
-    if (section === 'hotels') return (currentItem as HotelOption).bookingUrl || '#'
-    return (currentItem as TicketOption).bookingUrl || '#'
   }
 
   if (availableSections.length === 0) {
@@ -210,15 +212,24 @@ export function BookingView({ plan }: { plan: BookingPlan }) {
             换一个
           </button>
         )}
-        <a
-          href={getBookingUrl()}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex-1 py-3.5 rounded-2xl bg-white text-gray-900 text-sm font-semibold text-center hover:bg-white/90 transition-all"
+        <button
+          onClick={() => setModalOpen(true)}
+          className="flex-1 py-3.5 rounded-2xl bg-white text-gray-900 text-sm font-semibold hover:bg-white/90 active:scale-[0.98] transition-all"
         >
           去预订
-        </a>
+        </button>
       </div>
+
+      {currentItem && (
+        <BookingConfirmModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          item={currentItem}
+          type={itemType}
+          intent={intent ?? {}}
+          bookingUrl={bookingUrl}
+        />
+      )}
     </div>
   )
 }
