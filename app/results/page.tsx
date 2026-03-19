@@ -151,16 +151,15 @@ function FollowUpActions({ originalMessage }: { originalMessage: string }) {
 
   return (
     <div className="mt-6 mb-2">
-      <p className="text-xs text-gray-400 mb-3">想调整这份行程？</p>
+      <p className="text-xs text-slate-400 mb-3 font-medium">想调整这份行程？</p>
       <div className="grid grid-cols-2 gap-2">
-        {FOLLOW_UP_ACTIONS.map(({ label, icon, prompt }) => (
+        {FOLLOW_UP_ACTIONS.map(({ label, prompt }) => (
           <button
             key={label}
             onClick={() => handleAction(prompt)}
-            className="flex items-center gap-2 px-4 py-3 rounded-2xl border border-gray-200 bg-white text-sm text-gray-700 hover:border-indigo-300 hover:text-indigo-600 active:scale-95 transition-all text-left"
+            className="flex items-center gap-2 px-4 py-3 rounded-2xl border border-slate-200 bg-white text-sm text-slate-700 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 active:scale-95 transition-all text-left cursor-pointer shadow-sm"
           >
-            <span>{icon}</span>
-            <span className="font-medium">{label}</span>
+            <span className="font-semibold">{label}</span>
           </button>
         ))}
       </div>
@@ -186,14 +185,14 @@ function InlineFeedback() {
   }
 
   return (
-    <div className="mt-6 mb-2 rounded-2xl border border-gray-100 bg-white p-5">
+    <div className="mt-6 mb-2 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
       {status === 'done' ? (
-        <p className="text-center text-sm text-gray-400 py-2">感谢你的反馈 ✨</p>
+        <p className="text-center text-sm text-slate-400 py-2">感谢你的反馈</p>
       ) : (
         <>
-          <p className="text-sm font-medium text-gray-700 mb-3">这份行程对你有帮助吗？</p>
+          <p className="text-sm font-semibold text-slate-700 mb-3">这份行程对你有帮助吗？</p>
           <textarea
-            className="w-full h-24 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 placeholder-gray-300 resize-none outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300"
+            className="w-full h-24 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700 placeholder-slate-300 resize-none outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 transition-colors"
             placeholder="告诉我哪里可以改进，或者你想要的功能…"
             value={content}
             onChange={e => setContent(e.target.value)}
@@ -202,7 +201,7 @@ function InlineFeedback() {
           <button
             onClick={submit}
             disabled={status === 'loading' || !content.trim()}
-            className="mt-3 w-full py-2.5 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="mt-3 w-full py-2.5 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             {status === 'loading' ? '提交中…' : '提交反馈'}
           </button>
@@ -327,45 +326,49 @@ function TripConfirmForm({
   }
 
   const pillClass = (active: boolean) =>
-    `px-3 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
-      active ? 'bg-indigo-50 border-indigo-300 text-indigo-600' : 'border-gray-200 text-gray-500 bg-white'
+    `px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+      active
+        ? 'bg-indigo-500 border-indigo-500 text-white shadow-sm'
+        : 'border-slate-200 text-slate-500 bg-white hover:border-slate-300'
     }`
   const tagClass = (active: boolean) =>
-    `px-3 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
-      active ? 'bg-green-50 border-green-300 text-green-700' : 'border-gray-200 text-gray-500 bg-white'
+    `px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+      active
+        ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm'
+        : 'border-slate-200 text-slate-500 bg-white hover:border-slate-300'
     }`
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <header className="bg-white/95 backdrop-blur-sm border-b border-slate-100 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
           <TabiLogo size="sm" />
-          <span className="text-sm text-gray-400">确认需求</span>
+          <span className="text-sm text-slate-400">确认需求</span>
         </div>
       </header>
 
       <main className="max-w-3xl mx-auto w-full px-4 py-6 flex-1" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}>
-        <h2 className="text-xl font-bold text-gray-900 mb-1">确认你的旅行需求</h2>
-        <p className="text-sm text-gray-400 mb-5">AI 已帮你填好，可以直接修改</p>
+        <h2 className="text-xl font-bold text-slate-900 mb-1">确认你的旅行需求</h2>
+        <p className="text-sm text-slate-400 mb-5">AI 已帮你填好，可以直接修改</p>
 
         {/* Destination + Origin */}
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-3">
-          <div className="px-4 pt-4 pb-3 border-b border-gray-50">
-            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+        <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden mb-3 shadow-sm">
+          <div className="px-4 pt-4 pb-3 border-b border-slate-50">
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
               目的地
               {!intentReady && <span className="text-[10px] text-indigo-400 font-normal normal-case tracking-normal animate-pulse">AI 解析中…</span>}
             </div>
             <input
-              className="w-full text-base font-semibold text-gray-900 bg-transparent outline-none placeholder-gray-300"
+              className="w-full text-base font-semibold text-slate-900 bg-transparent outline-none placeholder-slate-300"
               value={form.destination}
               onChange={e => setForm(f => ({ ...f, destination: e.target.value }))}
               placeholder="去哪里？"
             />
           </div>
           <div className="px-4 pt-4 pb-3">
-            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">出发地</div>
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">出发地</div>
             <input
-              className="w-full text-base font-semibold text-gray-900 bg-transparent outline-none placeholder-gray-300"
+              className="w-full text-base font-semibold text-slate-900 bg-transparent outline-none placeholder-slate-300"
               value={form.origin}
               onChange={e => setForm(f => ({ ...f, origin: e.target.value }))}
               placeholder="从哪里出发？"
@@ -374,10 +377,10 @@ function TripConfirmForm({
         </div>
 
         {/* Duration + Travelers */}
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-3">
+        <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden mb-3 shadow-sm">
           <div className="grid grid-cols-2">
-            <div className="px-4 pt-4 pb-3 border-r border-gray-50">
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">天数</div>
+            <div className="px-4 pt-4 pb-3 border-r border-slate-50">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">天数</div>
               <div className="flex flex-wrap gap-1.5">
                 {DURATION_OPTIONS.map(d => (
                   <button key={d} onClick={() => setForm(f => ({ ...f, duration: d }))} className={pillClass(form.duration === d)}>{d}</button>
@@ -385,7 +388,7 @@ function TripConfirmForm({
               </div>
             </div>
             <div className="px-4 pt-4 pb-3">
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">人数</div>
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">人数</div>
               <div className="flex flex-wrap gap-1.5">
                 {TRAVELER_OPTIONS.map(t => (
                   <button key={t} onClick={() => setForm(f => ({ ...f, travelers: t }))} className={pillClass(form.travelers === t)}>{t}</button>
@@ -396,9 +399,9 @@ function TripConfirmForm({
         </div>
 
         {/* Budget */}
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-3">
+        <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden mb-3 shadow-sm">
           <div className="px-4 pt-4 pb-3">
-            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">总预算</div>
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">总预算</div>
             <div className="flex flex-wrap gap-1.5">
               {BUDGET_OPTIONS.map(b => (
                 <button key={b} onClick={() => setForm(f => ({ ...f, budget: b }))} className={pillClass(form.budget === b)}>{b}</button>
@@ -408,9 +411,9 @@ function TripConfirmForm({
         </div>
 
         {/* Styles */}
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-3">
+        <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden mb-3 shadow-sm">
           <div className="px-4 pt-4 pb-3">
-            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">旅行风格</div>
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">旅行风格</div>
             <div className="flex flex-wrap gap-2">
               {STYLE_OPTIONS.map(s => (
                 <button key={s} onClick={() => toggleStyle(s)} className={tagClass(form.styles.includes(s))}>{s}</button>
@@ -420,12 +423,18 @@ function TripConfirmForm({
         </div>
       </main>
 
-      <div className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-100 px-4 pt-3" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}>
+      <div className="fixed bottom-0 left-0 right-0 z-10 bg-white/95 backdrop-blur-sm border-t border-slate-100 px-4 pt-3" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}>
         <div className="max-w-3xl mx-auto">
           <button
             onClick={handleConfirm}
             disabled={!form.destination.trim()}
-            className="w-full py-3 rounded-2xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="w-full py-3.5 rounded-2xl text-white text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+            style={{
+              background: form.destination.trim()
+                ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
+                : '#94a3b8',
+              boxShadow: form.destination.trim() ? '0 4px 14px rgba(99,102,241,0.35)' : 'none',
+            }}
           >
             开始规划
           </button>
@@ -736,26 +745,26 @@ function Results() {
       : '正在理解你的旅行需求…'
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Top nav */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
+      <header className="bg-white/95 backdrop-blur-sm border-b border-slate-100 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <button onClick={() => router.push('/')}>
+          <button onClick={() => router.push('/')} className="cursor-pointer">
             <TabiLogo size="sm" />
           </button>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            {meta?.destination && <span>{meta.destination}</span>}
-            {meta?.destination && meta?.duration && <span>·</span>}
+          <div className="flex items-center gap-1.5 text-sm text-slate-500">
+            {meta?.destination && <span className="font-medium text-slate-700">{meta.destination}</span>}
+            {meta?.destination && meta?.duration && <span className="text-slate-300">·</span>}
             {meta?.duration && <span>{meta.duration} 天</span>}
             {plan?.request.travelers && plan.request.travelers > 1 && (
-              <><span>·</span><span>{plan.request.travelers} 人</span></>
+              <><span className="text-slate-300">·</span><span>{plan.request.travelers} 人</span></>
             )}
           </div>
           <div className="flex items-center">
             {plan && (
               <button
                 onClick={() => setShowShare(true)}
-                className="text-sm text-indigo-500 hover:text-indigo-700 flex items-center gap-1 transition-colors"
+                className="text-sm text-indigo-500 hover:text-indigo-600 flex items-center gap-1 transition-colors cursor-pointer"
               >
                 <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
@@ -770,12 +779,12 @@ function Results() {
       <main className="max-w-3xl mx-auto w-full px-4 py-8 pb-28 flex-1">
         {/* Progress bar */}
         {!plan && (
-          <div className="mb-8 bg-white rounded-2xl border border-gray-100 px-5 py-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-500">{streamLabel}</span>
-              <span className="text-sm font-semibold text-indigo-500 tabular-nums">{pct}%</span>
+          <div className="mb-8 bg-white rounded-2xl border border-slate-100 px-5 py-4 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-slate-600 font-medium">{streamLabel}</span>
+              <span className="text-sm font-bold text-indigo-500 tabular-nums">{pct}%</span>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
               <div
                 style={{
                   height: '100%',
@@ -792,25 +801,25 @@ function Results() {
         {/* Trip header */}
         {meta?.title ? (
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">{meta.title}</h1>
-            {meta.summary && <p className="text-gray-500 leading-relaxed">{meta.summary}</p>}
+            <h1 className="text-2xl font-bold text-slate-900 mb-2 leading-tight">{meta.title}</h1>
+            {meta.summary && <p className="text-slate-500 leading-relaxed text-sm">{meta.summary}</p>}
 
             {/* Tags — only available once full plan is loaded */}
             {plan && (
               <div className="flex flex-wrap gap-2 mt-4">
                 {plan.request.style && (
-                  <span className="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs rounded-full font-medium">
+                  <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-xs rounded-full font-semibold border border-indigo-100">
                     {plan.request.style}
                   </span>
                 )}
                 {plan.request.interests?.map((tag, i) => (
-                  <span key={i} className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                  <span key={i} className="px-3 py-1 bg-slate-100 text-slate-600 text-xs rounded-full border border-slate-100">
                     {tag}
                   </span>
                 ))}
                 {plan.estimatedBudget && (
-                  <span className="px-3 py-1 bg-green-50 text-green-700 text-xs rounded-full font-medium">
-                    💰 {plan.estimatedBudget}
+                  <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs rounded-full font-semibold border border-emerald-100">
+                    {plan.estimatedBudget}
                   </span>
                 )}
               </div>
@@ -822,13 +831,28 @@ function Results() {
 
         {/* Getting there — only when plan is fully loaded */}
         {plan?.gettingThere && (
-          <div className="mb-6 bg-white rounded-2xl border border-gray-100 p-5">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">
-              {plan.gettingThere.type === 'flight' ? '✈️' : plan.gettingThere.type === 'train' ? '🚄' : '🚌'} 怎么去
-            </h3>
-            <p className="text-sm font-medium text-gray-900 mb-1">{plan.gettingThere.description}</p>
-            <div className="flex items-center gap-3 text-xs text-gray-400 mt-2">
-              <span>⏱ {plan.gettingThere.duration}</span>
+          <div className="mb-6 bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-xl bg-sky-50 text-sky-500 flex items-center justify-center">
+                {plan.gettingThere.type === 'flight' ? (
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19 2c-2-2-4-1-5.5.5L10 6 1.8 6.2a1 1 0 00-.7 1.7l3.8 3.4-2.6 2.6a1 1 0 000 1.4l1.4 1.4a1 1 0 001.4 0l2.6-2.6 3.4 3.8a1 1 0 001.7-.7z" />
+                  </svg>
+                ) : plan.gettingThere.type === 'train' ? (
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="4" y="3" width="16" height="16" rx="2" /><path d="M4 11h16M12 3v8M8 19l-2 2M16 19l2 2M8 15h0M16 15h0" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M8 6v6M15 6v6M2 12h19.6M18 18h3s1-2 1-4h-3M2 18H1s-1-2-1-4h3" /><rect x="2" y="6" width="18" height="12" rx="2" /><circle cx="5" cy="18" r="2" /><circle cx="15" cy="18" r="2" />
+                  </svg>
+                )}
+              </div>
+              <h3 className="text-sm font-semibold text-slate-800">怎么去</h3>
+            </div>
+            <p className="text-sm font-medium text-slate-900 mb-1">{plan.gettingThere.description}</p>
+            <div className="flex items-center gap-2 text-xs text-slate-400 mt-2">
+              <span>{plan.gettingThere.duration}</span>
               <span>·</span>
               <span>{plan.gettingThere.priceRange}</span>
             </div>
@@ -836,9 +860,9 @@ function Results() {
               <p className="text-xs text-indigo-500 mt-2">{plan.gettingThere.tips}</p>
             )}
             {plan.gettingAround && (
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                <p className="text-xs text-gray-400 mb-1 font-medium">当地出行</p>
-                <p className="text-sm text-gray-600">{plan.gettingAround}</p>
+              <div className="mt-3 pt-3 border-t border-slate-100">
+                <p className="text-xs text-slate-400 mb-1 font-medium">当地出行</p>
+                <p className="text-sm text-slate-600">{plan.gettingAround}</p>
               </div>
             )}
           </div>
@@ -857,11 +881,11 @@ function Results() {
         {/* Checker warnings */}
         {warnings.length > 0 && (
           <div className="mt-4 bg-orange-50 border border-orange-100 rounded-2xl p-5">
-            <h3 className="text-sm font-semibold text-orange-800 mb-3">⚠️ 行程提醒</h3>
+            <h3 className="text-sm font-semibold text-orange-800 mb-3">行程提醒</h3>
             <ul className="space-y-2">
               {warnings.map((w, i) => (
                 <li key={i} className="text-sm text-orange-700 flex items-start gap-2">
-                  <span className="mt-0.5 shrink-0">•</span>
+                  <span className="mt-0.5 shrink-0 text-orange-400">•</span>
                   {w}
                 </li>
               ))}
@@ -876,7 +900,7 @@ function Results() {
             <ul className="space-y-2">
               {plan?.practicalTips?.map((tip, i) => (
                 <li key={i} className="text-sm text-amber-800 flex items-start gap-2">
-                  <span className="text-amber-400 mt-0.5">•</span>
+                  <span className="text-amber-400 mt-0.5 shrink-0">•</span>
                   {tip}
                 </li>
               ))}
@@ -886,17 +910,24 @@ function Results() {
 
         {/* Hotel recommendation */}
         {plan?.hotel && (
-          <div className="mt-4 bg-white rounded-2xl border border-gray-100 p-5">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">🏨 推荐住宿</h3>
-            <p className="text-base font-semibold text-gray-900">{plan.hotel.name}</p>
-            <p className="text-xs text-gray-400 mt-0.5 mb-3">{plan.hotel.area} · {plan.hotel.pricePerNight}</p>
+          <div className="mt-4 bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-xl bg-violet-50 text-violet-500 flex items-center justify-center">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 22V12M21 22V12M2 12h20M7 12V8M17 12V8M7 8a5 5 0 0110 0" />
+                </svg>
+              </div>
+              <h3 className="text-sm font-semibold text-slate-800">推荐住宿</h3>
+            </div>
+            <p className="text-base font-semibold text-slate-900">{plan.hotel.name}</p>
+            <p className="text-xs text-slate-400 mt-0.5 mb-3">{plan.hotel.area} · {plan.hotel.pricePerNight}</p>
             <div className="flex flex-wrap gap-2 mb-3">
               {plan.hotel.highlights.map((h, i) => (
-                <span key={i} className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-xs rounded-full">{h}</span>
+                <span key={i} className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-xs rounded-full border border-indigo-100">{h}</span>
               ))}
             </div>
             {plan.hotel.tips && (
-              <p className="text-xs text-gray-400">{plan.hotel.tips}</p>
+              <p className="text-xs text-slate-400">{plan.hotel.tips}</p>
             )}
           </div>
         )}
@@ -910,13 +941,13 @@ function Results() {
 
       {/* Bottom action bar */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-100 px-4 pt-3"
+        className="fixed bottom-0 left-0 right-0 z-10 bg-white/95 backdrop-blur-sm border-t border-slate-100 px-4 pt-3"
         style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
       >
         <div className="max-w-3xl mx-auto">
           <button
             onClick={() => router.push('/')}
-            className="w-full py-3 rounded-2xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition-colors"
+            className="w-full py-3.5 rounded-2xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors cursor-pointer"
           >
             重新规划
           </button>

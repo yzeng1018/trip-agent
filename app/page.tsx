@@ -27,43 +27,83 @@ export default function Home() {
       {/* Dynamic background slideshow */}
       <BackgroundSlideshow photos={TRAVEL_PHOTOS} intervalMs={7000} />
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/25 z-[1]" />
+      {/* Overlay — gradient for better depth */}
+      <div
+        className="absolute inset-0 z-[1]"
+        style={{
+          background:
+            'linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.22) 40%, rgba(15,5,40,0.72) 100%)',
+        }}
+      />
 
       {/* Nav */}
-      <nav className="relative z-[2] px-6 pt-5 flex items-center justify-between">
+      <nav className="relative z-[2] px-6 pt-6 flex items-center justify-between">
         <TabiLogo size="md" theme="light" />
       </nav>
 
       {/* Hero */}
-      <div className="relative z-[2] flex-1 flex flex-col justify-center max-w-2xl mx-auto w-full px-4 sm:px-6 pb-6 sm:pb-24">
-        <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 sm:mb-3 leading-tight tracking-tight">
-          你想去哪里？
-        </h1>
-        <p className="text-base sm:text-lg text-white/75 mb-4 sm:mb-8 leading-relaxed">
-          告诉我你的出行风格和预算，我来帮你规划旅程。
-        </p>
+      <div className="relative z-[2] flex-1 flex flex-col justify-center max-w-2xl mx-auto w-full px-5 sm:px-6 pb-6 sm:pb-24">
+        <div className="mb-7 sm:mb-9">
+          <h1
+            className="text-4xl sm:text-5xl font-bold text-white mb-2.5 leading-tight tracking-tight"
+            style={{ textShadow: '0 2px 24px rgba(0,0,0,0.3)' }}
+          >
+            你想去哪里？
+          </h1>
+          <p
+            className="text-base sm:text-lg text-white/70 leading-relaxed"
+            style={{ textShadow: '0 1px 8px rgba(0,0,0,0.25)' }}
+          >
+            告诉我你的出行风格和预算，我来帮你规划旅程。
+          </p>
+        </div>
 
         {/* Input card */}
-        <div className="bg-white rounded-3xl shadow-2xl p-5">
-          <textarea
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSearch() }
+        <div
+          className="rounded-3xl overflow-hidden"
+          style={{
+            background: 'rgba(255,255,255,0.97)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 8px 40px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.12)',
+          }}
+        >
+          {/* Top accent line */}
+          <div
+            className="h-0.5"
+            style={{
+              background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)',
             }}
-            placeholder="设计一次难忘的樱花季日本之旅，4月中旬，两个人..."
-            className="w-full resize-none text-gray-800 text-base leading-relaxed placeholder-gray-300 outline-none min-h-[60px] sm:min-h-[80px]"
-            rows={2}
           />
 
-          <div className="flex items-center justify-end mt-3">
+          <div className="px-5 pt-4 pb-2">
+            <textarea
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  handleSearch()
+                }
+              }}
+              placeholder="设计一次难忘的樱花季日本之旅，4月中旬，两个人..."
+              className="w-full resize-none text-slate-800 text-base leading-relaxed placeholder-slate-300 outline-none min-h-[60px] sm:min-h-[80px] bg-transparent"
+              rows={2}
+            />
+          </div>
+
+          <div className="flex items-center justify-end px-4 pb-4">
             <button
               onClick={handleSearch}
               disabled={!input.trim()}
-              className="flex items-center justify-center w-10 h-10 bg-gray-900 text-white rounded-full hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="flex items-center justify-center w-10 h-10 rounded-full disabled:opacity-35 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer"
+              style={{
+                background: input.trim()
+                  ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
+                  : '#e2e8f0',
+                boxShadow: input.trim() ? '0 4px 12px rgba(99,102,241,0.4)' : 'none',
+              }}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </button>
@@ -76,13 +116,13 @@ export default function Home() {
             <button
               key={i}
               onClick={() => setInput(action.prompt)}
-              className="px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white text-sm rounded-full hover:bg-white/30 transition-all"
+              className="px-4 py-2 rounded-full text-sm text-white border border-white/20 bg-white/15 backdrop-blur-sm hover:bg-white/25 transition-all cursor-pointer"
+              style={{ textShadow: '0 1px 4px rgba(0,0,0,0.2)' }}
             >
               {action.label}
             </button>
           ))}
         </div>
-
       </div>
     </main>
   )
