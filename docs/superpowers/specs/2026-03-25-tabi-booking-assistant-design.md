@@ -119,6 +119,8 @@ interface RecommendationCard {
     stars: number;
   };
   summary: string;
+  // cabin 字段由 AI 输出中文显示名（如"经济舱"），booking.ts 负责映射到 IATA 舱位代码：
+  // 经济舱→Y, 商务舱→C, 头等舱→F
   links: {
     flight: string;        // 携程机票深链
     hotel: string;         // 携程酒店深链
@@ -155,7 +157,9 @@ interface RecommendationCard {
 }
 ```
 
-客户端用 `/^\s*\{/` 正则检测 JSON 起始，解析失败时降级为纯文字回复（参考 trip-agent 的 `jsonrepair` 降级策略）。后端解析后调用 `booking.ts` 生成深链并注入 `links` 字段返回给前端。
+客户端用 `raw.search(/\{\s*"/)` 在流式响应中定位 JSON 起始（不锚定字符串开头，以容忍 LLM 偶发前置文字），解析失败时先尝试 `jsonrepair`，仍失败则降级为纯文字回复。
+
+**数据流分层：** AI 输出的 JSON 由 `app/api/chat/route.ts` 后端解析，调用 `booking.ts` 生成深链并注入 `links` 字段，再将完整的 `RecommendationCard` 返回给前端。前端不直接调用 `booking.ts`，城市→IATA 映射逻辑只存在于服务端。
 
 ### 城市 → IATA 映射
 
@@ -205,8 +209,9 @@ https://hotels.ctrip.com/hotel/place/{city}.html
   ?checkin={checkin}
   &checkout={checkout}
   &adult={adults}
-  &star={stars}
 ```
+
+> **注意：** 携程酒店深链不支持通过 URL 参数直接过滤星级，`star=` 参数会被静默忽略。星级偏好由 AI 在推荐卡的 `summary` 文字中体现（如"推荐4星酒店"），用户在携程落地页自行筛选。
 
 ---
 
