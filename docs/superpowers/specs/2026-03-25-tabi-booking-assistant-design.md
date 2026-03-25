@@ -89,6 +89,8 @@ MVP 仅支持**往返程**（round-trip），不支持单程。
 
 **触发推荐的条件：** 5个必填字段全部收集后，AI 切换到推荐模式。
 
+**修改需求：** 用户在推荐卡展示后说"改去东京""换成5月"等，状态重置回 `collecting`，客户端用修改后的字段更新 `TripRequirements`，AI 重新追问剩余字段（若有）或直接重新推荐。
+
 ### 核心类型定义
 
 ```typescript
@@ -187,31 +189,49 @@ const CITY_TO_IATA: Record<string, string> = {
 
 ## 深链格式参考
 
-### 携程机票（往返）
+### 携程机票（国际，城市名直接传参，无需 IATA）
 
 ```
-https://flights.ctrip.com/online/list/round-{origin}-{destination}
-  ?depdate={departDate}
-  &retdate={returnDate}
-  &adult={adults}
-  &cabin=Y
+https://flights.ctrip.com/international/search/oneway
+  ?adult={adults}
+  &cabin=y
+  &dcity={origin}        // 出发城市名，encodeURIComponent
+  &acity={destination}   // 目的地城市名，encodeURIComponent
+  &date={departDateYYYYMMDD}
 ```
 
-示例：上海→大阪，2026-04-25 出发，2026-04-30 返回，2大人：
+示例：上海→大阪，2026-04-25 出发，2大人：
 ```
-https://flights.ctrip.com/online/list/round-SHA-KIX?depdate=2026-04-25&retdate=2026-04-30&adult=2&cabin=Y
+https://flights.ctrip.com/international/search/oneway?adult=2&cabin=y&dcity=%E4%B8%8A%E6%B5%B7&acity=%E5%A4%A7%E9%98%AA&date=20260425
+```
+
+> **说明：**
+> - 此格式使用城市名（非 IATA 代码），OTA 端自动匹配机场，无需 `CITY_TO_IATA` 映射
+> - MVP 使用单程链接（oneway），返程链接由用户在携程落地页另搜，或未来迭代时添加 `retdate` 参数
+> - `cabin=y` 使用小写（与现有 booking.ts 保持一致）
+> - `CITY_TO_IATA` 映射表**仅供未来中期阶段接入真实机票 API 时使用**，MVP 不需要
+
+### 携程国内机票
+
+```
+https://m.ctrip.com/webapp/flights/domestic/
+  ?adult={adults}
+  &fromCity={origin}
+  &toCity={destination}
+  &departDate={departDate}   // YYYY-MM-DD
 ```
 
 ### 携程酒店
 
 ```
-https://hotels.ctrip.com/hotel/place/{city}.html
-  ?checkin={checkin}
-  &checkout={checkout}
+https://m.ctrip.com/webapp/hotel/list/
+  ?city={destination}
+  &checkin={checkin}         // YYYY-MM-DD
+  &checkout={checkout}       // YYYY-MM-DD
   &adult={adults}
 ```
 
-> **注意：** 携程酒店深链不支持通过 URL 参数直接过滤星级，`star=` 参数会被静默忽略。星级偏好由 AI 在推荐卡的 `summary` 文字中体现（如"推荐4星酒店"），用户在携程落地页自行筛选。
+> **注意：** 携程酒店深链不支持通过 URL 参数直接过滤星级，星级偏好由 AI 在推荐卡的 `summary` 文字中体现（如"推荐4星酒店"），用户在携程落地页自行筛选。
 
 ---
 
